@@ -62,7 +62,19 @@ for b in "$root"/payload/bin/omavoice-atvvoice "$root"/payload/bin/omavoice-{doc
 for b in "$root"/payload/bin/omavoice-atvvoice "$root"/payload/bin/omavoice-{doctor,settings,statistics} "$root/optional-keyd/omavoice-keyd-helper"; do readelf -d "$b"|grep -Eq 'RPATH|RUNPATH'&&fail "RPATH present: $b"; done
 handy_runpath=$(readelf -d "$root/payload/bin/handy"|sed -n 's/.*(RUNPATH).*\[\(.*\)\]/\1/p'); [[ $handy_runpath == '$ORIGIN/../lib/Handy:$ORIGIN/../lib' ]]||fail "unexpected Handy RUNPATH: $handy_runpath"
 LD_LIBRARY_PATH="$root/payload/lib/Handy" ldd "$root/payload/bin/handy"|grep -q 'not found'&&fail 'Handy has missing runtime dependencies'; for b in "$root"/payload/bin/omavoice-atvvoice "$root"/payload/bin/omavoice-{doctor,settings,statistics}; do ldd "$b"|grep -q 'not found'&&fail "missing runtime dependency: $b"; done
-desktop-file-validate "$root"/payload/share/applications/*; verify_home="$work/systemd-home"; mkdir -p "$verify_home/.local/bin"; for n in omavoice-atvvoice omavoice-settings omavoice-statistics omavoice-handy; do ln -s /usr/bin/true "$verify_home/.local/bin/$n"; done; HOME="$verify_home" systemd-analyze verify --user "$root"/payload/systemd/user/*.service; bash -n "$root"/{install.sh,uninstall.sh} "$root"/optional-keyd/{install.sh,uninstall.sh}
+desktop-file-validate "$root"/payload/share/applications/*
+verify_home="$work/systemd-home"; mkdir -p "$verify_home/.local/bin"
+for n in omavoice-atvvoice omavoice-settings omavoice-statistics omavoice-handy; do ln -s /usr/bin/true "$verify_home/.local/bin/$n"; done
+if ((EUID == 0)); then
+  command -v runuser >/dev/null||fail 'required command missing for root user-unit verification: runuser'
+  verify_user=${OMAVOICE_VERIFY_USER:-omavoice-ci}; id "$verify_user" >/dev/null 2>&1||fail "user-unit verification account missing: $verify_user"
+  verify_uid=$(id -u "$verify_user"); verify_gid=$(id -g "$verify_user"); verify_runtime="/run/user/$verify_uid"
+  chmod 0711 "$work"; install -d -m0700 -o "$verify_uid" -g "$verify_gid" "$verify_runtime"; chown -R "$verify_uid:$verify_gid" "$verify_home"
+  runuser -u "$verify_user" -- env HOME="$verify_home" XDG_RUNTIME_DIR="$verify_runtime" systemd-analyze verify --user "$root"/payload/systemd/user/*.service
+else
+  HOME="$verify_home" systemd-analyze verify --user "$root"/payload/systemd/user/*.service
+fi
+bash -n "$root"/{install.sh,uninstall.sh} "$root"/optional-keyd/{install.sh,uninstall.sh}
 python3 "$HERE/Linux/release/check-markdown-links.py" "$root"
 (cd "$root"; find . -type f ! -name PAYLOAD-SHA256SUMS -printf '%P\0'|sort -z|xargs -0 sha256sum >PAYLOAD-SHA256SUMS)
 "$HERE/Linux/release/test-lifecycle.sh" "$root"

@@ -25,11 +25,19 @@ jobs:
       - name: Check out source
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Validate formatting and namespace
+      - name: Validate Rust formatting
         run: |
           set -euo pipefail
           cargo fmt --manifest-path Linux/OmaVoiceLinux/Cargo.toml --all -- --check
+
+      - name: Validate repository diff
+        run: |
+          set -euo pipefail
           git diff --check
+
+      - name: Validate runtime namespace
+        run: |
+          set -euo pipefail
           test -z "$(git grep -Il -i sayall -- Linux docs || true)"
           test -z "$(git ls-files Linux docs | grep -i sayall || true)"
 

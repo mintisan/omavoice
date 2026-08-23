@@ -26,7 +26,8 @@ jobs:
             keyd wtype wl-clipboard gtk4 libadwaita sqlite \
             cmake clang shaderc alsa-lib gtk3 webkit2gtk-4.1 \
             libayatana-appindicator gtk-layer-shell openblas \
-            vulkan-headers vulkan-icd-loader python file binutils tar zstd \
+            spirv-headers vulkan-headers vulkan-icd-loader \
+            python file binutils tar zstd \
             desktop-file-utils systemd github-cli
 
       - name: Check out tagged source

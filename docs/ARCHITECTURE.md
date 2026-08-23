@@ -39,9 +39,9 @@ OmaVoice settings/tray
 
 OmaVoice does not add another Bluetooth stack, audio server, inference engine or arbitrary root command layer.
 
-## Compatibility identifiers
+## Installed identifiers
 
-The first release intentionally retains `sayall-*`, `app.sayall.*`, `/usr/lib/sayall`, `/etc/keyd/sayall-rc003.conf` and XDG `sayall/` names. They connect already-tested units, profiles, PolicyKit policy and local databases. A future identifier rename requires an atomic data/service migration and rollback plan.
+Commands, units, desktop and PolicyKit IDs, the helper directory, keyd configuration and XDG paths use the `omavoice` namespace consistently.
 
 ## Privacy model
 

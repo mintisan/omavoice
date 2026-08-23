@@ -22,7 +22,7 @@ standard `Menu` keysym already proven by the physical remote, while keyd's
 `menu` name emits the distinct `KEY_MENU` code that becomes `XF86MenuKB` and is
 ignored by the tested application.
 
-`Linux/SayAllLinux/src/keyd.rs` uses that table to generate the settings-page
+`Linux/OmaVoiceLinux/src/keyd.rs` uses that table to generate the settings-page
 preview and final system configuration through one keyd pipeline. It rejects
 any profile other than the verified RC003 `2717:32b8`; volume buttons do not
 require a separate hidraw daemon. Power remains deliberately absent from the
@@ -37,7 +37,7 @@ from the selected device Profile.
 Validate the file before installation:
 
 ```bash
-keyd check Linux/keyd/sayall-rc003.conf
+keyd check Linux/keyd/omavoice-rc003.conf
 ```
 
 Installing keyd or writing `/etc/keyd` changes system-wide input handling and
@@ -63,6 +63,6 @@ Handy and keyd both use an exclusive evdev grab. keyd must own the physical
 RC003 before Handy starts so that Handy reads keyd's virtual F20 output. During
 a first-time installation with Handy already running, exit Handy, start or
 restart keyd, confirm the journal matches the physical device without
-`Failed to grab`, then relaunch Handy through `sayall-handy`. A normal system
+`Failed to grab`, then relaunch Handy through `omavoice-handy`. A normal system
 boot should start the system-level keyd service before the user session, but
 that cold-login order still needs an end-to-end regression test.

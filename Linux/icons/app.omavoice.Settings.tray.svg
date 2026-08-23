@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <title>OmaVoice tray icon</title>
   <rect x="126" y="46" width="476" height="932" rx="158"
         fill="none" stroke="#f8fafc" stroke-width="72"/>
 

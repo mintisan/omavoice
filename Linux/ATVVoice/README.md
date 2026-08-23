@@ -43,7 +43,7 @@ bash Linux/ATVVoice/build-patched.sh
 Or provide a nonexistent or empty user-owned output directory:
 
 ```bash
-bash Linux/ATVVoice/build-patched.sh /tmp/sayall-atvvoice-check
+bash Linux/ATVVoice/build-patched.sh /tmp/omavoice-atvvoice-check
 ```
 
 The script verifies patch hashes, fetches the pinned base, applies the patches

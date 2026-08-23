@@ -17,22 +17,22 @@ use libadwaita as adw;
 
 use adw::prelude::*;
 use gtk::glib::{self, ControlFlow, Propagation};
-use sayall_linux::config::{
+use omavoice_linux::config::{
     ButtonAction, ConfigStore, ControlSource, DeviceProfile, KeyboardShortcut, LinuxConfig,
     RemoteButton, Transport, VoiceSource,
 };
-use sayall_linux::diagnostics::{
+use omavoice_linux::diagnostics::{
     diagnostic_directory_from_environment, export_diagnostic_report, log_directory_from_environment,
 };
-use sayall_linux::i18n::{Language, language, tr};
-use sayall_linux::keyd::render_rc003_keyd_preview;
-use sayall_linux::statistics::{
+use omavoice_linux::i18n::{Language, language, tr};
+use omavoice_linux::keyd::render_rc003_keyd_preview;
+use omavoice_linux::statistics::{
     StatisticsDatabase, StatisticsPaths, StatisticsPeriod, StatisticsSummary,
 };
-use sayall_linux::transcripts::{
+use omavoice_linux::transcripts::{
     TranscriptArchive, TranscriptDatabase, TranscriptPaths, read_archive_file, write_archive_file,
 };
-use sayall_linux::{
+use omavoice_linux::{
     CheckResult, CheckStatus, DoctorReport, Phase, collect_system_snapshot, command_exists,
     evaluate,
 };
@@ -46,13 +46,13 @@ macro_rules! trf {
     };
 }
 
-const APP_ID: &str = "app.sayall.Settings";
+const APP_ID: &str = "app.omavoice.Settings";
 const OMARCHY_SHELL_PATH: &str = "/usr/share/omarchy/shell";
 const PKEXEC_PATH: &str = "/usr/bin/pkexec";
-const KEYD_HELPER_PATH: &str = "/usr/lib/sayall/sayall-keyd-helper";
+const KEYD_HELPER_PATH: &str = "/usr/lib/omavoice/omavoice-keyd-helper";
 const KEYD_HELPER_PROTOCOL: &str = "apply-v1";
 const REMOTE_IMAGE: &[u8] = include_bytes!("../../../../Resources/RC003-remote-photo.png");
-const TRAY_ICON_PNG: &[u8] = include_bytes!("../../../icons/app.sayall.Settings.tray.png");
+const TRAY_ICON_PNG: &[u8] = include_bytes!("../../../icons/app.omavoice.Settings.tray.png");
 const SETTINGS_CSS: &str = "window { font-size: 12pt; }";
 
 type SharedUi = Rc<RefCell<Option<SettingsUi>>>;
@@ -143,8 +143,8 @@ const KDE_BLUETOOTH: LaunchSpec = LaunchSpec {
     program: "systemsettings6",
     arguments: &["kcm_bluetooth"],
 };
-const SAYALL_HANDY: LaunchSpec = LaunchSpec {
-    program: "sayall-handy",
+const OMAVOICE_HANDY: LaunchSpec = LaunchSpec {
+    program: "omavoice-handy",
     arguments: &[],
 };
 const HANDY_LOWERCASE: LaunchSpec = LaunchSpec {
@@ -200,16 +200,16 @@ impl ProfileSettings {
 }
 
 #[derive(Debug)]
-struct SayAllTray {
+struct OmaVoiceTray {
     commands: Sender<TrayCommand>,
 }
 
 struct TrayRuntime {
-    handle: ksni::blocking::Handle<SayAllTray>,
+    handle: ksni::blocking::Handle<OmaVoiceTray>,
     _application_hold: gtk::gio::ApplicationHoldGuard,
 }
 
-impl SayAllTray {
+impl OmaVoiceTray {
     fn send(&self, command: TrayCommand) {
         let _ = self.commands.send(command);
     }
@@ -234,9 +234,9 @@ fn tray_icon() -> &'static ksni::Icon {
     &ICON
 }
 
-impl ksni::Tray for SayAllTray {
+impl ksni::Tray for OmaVoiceTray {
     fn id(&self) -> String {
-        "sayall-settings".into()
+        "omavoice-settings".into()
     }
 
     fn title(&self) -> String {
@@ -485,7 +485,7 @@ static PAGES: LazyLock<[PageDefinition; 6]> = LazyLock::new(|| {
         },
         PageDefinition {
             id: "system",
-            title: tr("Systems & Diagnostics", "系统与诊断"),
+            title: tr("System Diagnostics", "系统与诊断"),
             icon: "emblem-system-symbolic",
             description: tr(
                 "View all read-only check results by development stage; this page does not install software, modify services, or write system configurations.",
@@ -505,7 +505,7 @@ fn main() {
     application.connect_startup({
         let tray_runtime = tray_runtime.clone();
         let commands = commands.clone();
-        move |application| match (SayAllTray {
+        move |application| match (OmaVoiceTray {
             commands: commands.clone(),
         })
         .assume_sni_available(true)
@@ -629,6 +629,7 @@ fn build_ui(application: &adw::Application) -> SettingsUi {
     for definition in PAGES.iter().copied() {
         let row = adw::ActionRow::builder()
             .activatable(true)
+            .use_markup(false)
             .title(definition.title)
             .build();
         row.add_prefix(&gtk::Image::from_icon_name(definition.icon));
@@ -639,7 +640,10 @@ fn build_ui(application: &adw::Application) -> SettingsUi {
         "Only user configurations that are explicitly confirmed are saved · The system is not automatically modified",
         "只保存明确确认的用户配置 · 不自动修改系统",
     )));
-    privacy_note.set_halign(Align::Start);
+    privacy_note.set_halign(Align::Fill);
+    privacy_note.set_xalign(0.0);
+    privacy_note.set_wrap(true);
+    privacy_note.set_max_width_chars(28);
     privacy_note.set_margin_start(18);
     privacy_note.set_margin_end(18);
     privacy_note.set_margin_top(12);
@@ -933,7 +937,7 @@ fn build_statistics_groups() -> Vec<adw::PreferencesGroup> {
     transcript_file_buttons.append(&transcript_import_button);
     transcript_file_buttons.append(&transcript_export_button);
     let transcript_file_row = adw::ActionRow::builder()
-        .title(tr("Import & Export", "导入与导出"))
+        .title(tr("Import &amp; Export", "导入与导出"))
         .subtitle(tr("Versioned JSON contains transcript text and time metadata; import will preview the number of additions and duplicates", "版本化 JSON 包含正文和时间元数据；导入会先预览新增与重复数量"))
         .build();
     transcript_file_row.add_suffix(&transcript_file_buttons);
@@ -1297,7 +1301,7 @@ fn choose_transcript_import(button: &gtk::Button, ui: &StatisticsUi) {
 }
 
 fn preview_transcript_import(parent: Option<gtk::Window>, ui: &StatisticsUi, path: &Path) {
-    let result = (|| -> Result<(TranscriptArchive, sayall_linux::transcripts::TranscriptImportPreview), String> {
+    let result = (|| -> Result<(TranscriptArchive, omavoice_linux::transcripts::TranscriptImportPreview), String> {
         let archive = read_archive_file(path, SystemTime::now()).map_err(|error| error.to_string())?;
         let paths = TranscriptPaths::from_xdg_environment().map_err(|error| error.to_string())?;
         let database = TranscriptDatabase::open(&paths.database).map_err(|error| error.to_string())?;
@@ -1383,7 +1387,7 @@ fn choose_transcript_export(button: &gtk::Button, ui: &StatisticsUi) {
         .root()
         .and_then(|root| root.downcast::<gtk::Window>().ok());
     let initial_name = format!(
-        "sayall-transcripts-{}.json",
+        "omavoice-transcripts-{}.json",
         Local::now().format("%Y-%m-%d")
     );
     let dialog = transcript_json_dialog(
@@ -1579,8 +1583,8 @@ fn show_statistics_error_row(rows: &[(adw::ActionRow, gtk::Label)]) {
     let Some((row, _)) = rows.first() else { return };
     row.set_title(tr("Stats Temporarily Unavailable", "统计暂时不可用"));
     row.set_subtitle(tr(
-        "Please check XDG data directory and sayall-statistics user service",
-        "请检查 XDG 数据目录和 sayall-statistics 用户服务",
+        "Please check XDG data directory and omavoice-statistics user service",
+        "请检查 XDG 数据目录和 omavoice-statistics 用户服务",
     ));
     row.set_visible(true);
 }
@@ -1773,7 +1777,7 @@ fn build_diagnostics_group(report: &DoctorReport) -> adw::PreferencesGroup {
     controls.append(&button);
     let row = adw::ActionRow::builder()
         .title(tr("OmaVoice capability report", "OmaVoice 能力报告"))
-        .subtitle(tr("XDG Status Directory/sayall/diagnostics/sayall-doctor.json · Schema 1 · Permissions 0600", "XDG 状态目录/sayall/diagnostics/sayall-doctor.json · Schema 1 · 权限 0600"))
+        .subtitle(tr("XDG Status Directory/omavoice/diagnostics/omavoice-doctor.json · Schema 1 · Permissions 0600", "XDG 状态目录/omavoice/diagnostics/omavoice-doctor.json · Schema 1 · 权限 0600"))
         .build();
     row.add_suffix(&controls);
     group.add(&row);
@@ -1814,7 +1818,7 @@ fn build_diagnostics_group(report: &DoctorReport) -> adw::PreferencesGroup {
     log_controls.append(&log_button);
     let log_row = adw::ActionRow::builder()
         .title(tr("OmaVoice Run Log", "OmaVoice 运行日志"))
-        .subtitle(tr("XDG status directory/sayall/logs · Only open after the runtime component actually generates a log", "XDG 状态目录/sayall/logs · 仅在运行时组件实际产生日志后开放"))
+        .subtitle(tr("XDG status directory/omavoice/logs · Only open after the runtime component actually generates a log", "XDG 状态目录/omavoice/logs · 仅在运行时组件实际产生日志后开放"))
         .build();
     log_row.add_suffix(&log_controls);
     group.add(&log_row);
@@ -1886,7 +1890,7 @@ fn omarchy_bluetooth_available() -> bool {
 }
 
 fn handy_launcher() -> Option<LaunchSpec> {
-    [SAYALL_HANDY, HANDY_LOWERCASE, HANDY_TITLECASE]
+    [OMAVOICE_HANDY, HANDY_LOWERCASE, HANDY_TITLECASE]
         .into_iter()
         .find(|launcher| command_exists(launcher.program))
 }
@@ -2979,8 +2983,8 @@ fn build_summary_group(report: &DoctorReport) -> adw::PreferencesGroup {
     let group = adw::PreferencesGroup::builder()
         .title(tr("Phase 0B Readiness", "阶段 0B 就绪状态"))
         .description(tr(
-            "The same test results are used here with sayall-doctor --phase 0b.",
-            "这里和 sayall-doctor --phase 0b 使用同一份检测结果。",
+            "The same test results are used here with omavoice-doctor --phase 0b.",
+            "这里和 omavoice-doctor --phase 0b 使用同一份检测结果。",
         ))
         .build();
 
@@ -3083,7 +3087,7 @@ fn checks_for_page(report: &DoctorReport, definition: PageDefinition) -> Vec<&Ch
 fn page_group_title(page_id: &str) -> &'static str {
     match page_id {
         "overview" => tr("Local base environment", "本机基础环境"),
-        "devices" => tr("Remote Controls & Input Devices", "遥控器与输入设备"),
+        "devices" => tr("Remote Controls &amp; Input Devices", "遥控器与输入设备"),
         "voice" => tr("Global Voice Input", "全局语音输入"),
         "buttons" => tr("Key Mapping Criteria", "按键映射条件"),
         "system" => tr("Full Ability Check", "全部能力检查"),
@@ -3120,7 +3124,7 @@ fn page_group_description(page_id: &str) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sayall_linux::SystemSnapshot;
+    use omavoice_linux::SystemSnapshot;
     use std::collections::HashSet;
 
     #[test]
@@ -3165,8 +3169,8 @@ mod tests {
             .iter()
             .flat_map(|(_, buttons)| buttons.iter().map(|(button, _)| *button))
             .collect::<Vec<_>>();
-        assert_eq!(buttons.len(), sayall_linux::config::REMOTE_BUTTONS.len());
-        for expected in sayall_linux::config::REMOTE_BUTTONS {
+        assert_eq!(buttons.len(), omavoice_linux::config::REMOTE_BUTTONS.len());
+        for expected in omavoice_linux::config::REMOTE_BUTTONS {
             assert_eq!(
                 buttons
                     .iter()
@@ -3214,7 +3218,7 @@ mod tests {
     #[test]
     fn tray_exposes_remote_icon_and_expected_menu() {
         let (commands, _) = mpsc::channel();
-        let tray = SayAllTray { commands };
+        let tray = OmaVoiceTray { commands };
         let icons = ksni::Tray::icon_pixmap(&tray);
         let menu = ksni::Tray::menu(&tray);
         let labels = menu
@@ -3243,7 +3247,7 @@ mod tests {
     #[test]
     fn tray_activation_requests_the_settings_window() {
         let (commands, receiver) = mpsc::channel();
-        let mut tray = SayAllTray { commands };
+        let mut tray = OmaVoiceTray { commands };
 
         ksni::Tray::activate(&mut tray, 0, 0);
 
@@ -3311,10 +3315,10 @@ mod tests {
                 .iter()
                 .all(|launcher| launcher.program != "sh" && launcher.program != "sudo")
         );
-        assert!(SAYALL_HANDY.arguments.is_empty());
+        assert!(OMAVOICE_HANDY.arguments.is_empty());
         assert!(HANDY_LOWERCASE.arguments.is_empty());
         assert_eq!(PKEXEC_PATH, "/usr/bin/pkexec");
-        assert_eq!(KEYD_HELPER_PATH, "/usr/lib/sayall/sayall-keyd-helper");
+        assert_eq!(KEYD_HELPER_PATH, "/usr/lib/omavoice/omavoice-keyd-helper");
         assert_eq!(KEYD_HELPER_PROTOCOL, "apply-v1");
         assert_ne!(KEYD_HELPER_PATH, "sh");
     }

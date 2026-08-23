@@ -42,7 +42,7 @@ Power 有意保持原键，由 Omarchy 显示原生关机/重启/睡眠界面。
 ## 已验证音频契约
 
 - ATVV v1.0 HoldToTalk，16 kHz 单声道 IMA/DVI ADPCM，120-byte frame。
-- 补丁版 ATVVoice 每个会话重置 decoder，并发布唯一稳定 `Audio/Source`：`atvvoice-sayall-rc003`。
+- 补丁版 ATVVoice 每个会话重置 decoder，并发布唯一稳定 `Audio/Source`：`atvvoice-omavoice-rc003`。
 - 使用 `PIPEWIRE_NODE` 只把 Handy 路由到该 source，不改变系统默认麦克风。
 - 实体 Mic 长按已触发 Handy 底部浮层、准确简体中文识别，并向当前输入框完成一次完整写入。
 

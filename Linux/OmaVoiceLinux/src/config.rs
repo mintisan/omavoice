@@ -678,7 +678,7 @@ impl ConfigStore {
             })
             .ok_or(ConfigError::MissingConfigHome)?;
 
-        Ok(Self::from_path(base.join("sayall/settings.json")))
+        Ok(Self::from_path(base.join("omavoice/settings.json")))
     }
 
     pub fn path(&self) -> &Path {
@@ -972,7 +972,7 @@ mod tests {
     #[test]
     fn atomic_save_uses_private_permissions_and_leaves_no_temporary_file() {
         let directory = tempdir().unwrap();
-        let path = directory.path().join("config/sayall/settings.json");
+        let path = directory.path().join("config/omavoice/settings.json");
         let store = ConfigStore::from_path(&path);
 
         store.save(&LinuxConfig::default()).unwrap();

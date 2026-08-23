@@ -8,7 +8,7 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-ExecStart=%h/.local/bin/sayall-settings --gapplication-service
+ExecStart=%h/.local/bin/omavoice-settings --gapplication-service
 Restart=on-failure
 RestartSec=2
 # pkexec only launches the fixed root-owned helper. NoNewPrivileges blocks its

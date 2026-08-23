@@ -14,7 +14,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub const TRANSCRIPT_DATABASE_SCHEMA_VERSION: i64 = 1;
 pub const TRANSCRIPT_ARCHIVE_VERSION: u32 = 1;
-pub const TRANSCRIPT_ARCHIVE_FORMAT: &str = "app.sayall.transcript-archive";
+pub const TRANSCRIPT_ARCHIVE_FORMAT: &str = "app.omavoice.transcript-archive";
 pub const HANDY_HISTORY_SCHEMA_VERSION: i64 = 4;
 const MAX_ARCHIVE_BYTES: u64 = 16 * 1024 * 1024;
 const MAX_ARCHIVE_ENTRIES: usize = 10_000;
@@ -58,8 +58,8 @@ impl TranscriptPaths {
             ));
         }
         Ok(Self {
-            database: data_home.join("sayall/transcripts.db"),
-            statistics_database: data_home.join("sayall/statistics.db"),
+            database: data_home.join("omavoice/transcripts.db"),
+            statistics_database: data_home.join("omavoice/statistics.db"),
             handy_history: data_home.join("com.pais.handy/history.db"),
         })
     }
@@ -792,7 +792,7 @@ mod tests {
     const NOW: i64 = 1_787_454_200;
 
     fn database(temporary: &TempDir) -> TranscriptDatabase {
-        TranscriptDatabase::open(temporary.path().join("data/sayall/transcripts.db")).unwrap()
+        TranscriptDatabase::open(temporary.path().join("data/omavoice/transcripts.db")).unwrap()
     }
 
     fn system_time(timestamp: i64) -> SystemTime {
@@ -841,7 +841,7 @@ mod tests {
     #[test]
     fn database_is_private_and_archive_is_disabled_by_default() {
         let temporary = TempDir::new().unwrap();
-        let path = temporary.path().join("data/sayall/transcripts.db");
+        let path = temporary.path().join("data/omavoice/transcripts.db");
         let database = TranscriptDatabase::open(&path).unwrap();
 
         assert!(!database.archive_enabled().unwrap());
@@ -990,7 +990,7 @@ mod tests {
     #[test]
     fn json_export_is_atomic_private_and_importable() {
         let temporary = TempDir::new().unwrap();
-        let path = temporary.path().join("sayall-transcripts.json");
+        let path = temporary.path().join("omavoice-transcripts.json");
         let archive = sample_archive();
         write_archive_file(&path, &archive).unwrap();
 

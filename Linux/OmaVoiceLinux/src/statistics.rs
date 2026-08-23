@@ -75,7 +75,7 @@ impl StatisticsPaths {
             ));
         }
         Ok(Self {
-            database: data_home.join("sayall/statistics.db"),
+            database: data_home.join("omavoice/statistics.db"),
             handy_recordings: data_home.join("com.pais.handy/recordings"),
         })
     }
@@ -496,13 +496,13 @@ mod tests {
     use tempfile::TempDir;
 
     fn database(temporary: &TempDir) -> StatisticsDatabase {
-        StatisticsDatabase::open(temporary.path().join("data/sayall/statistics.db")).unwrap()
+        StatisticsDatabase::open(temporary.path().join("data/omavoice/statistics.db")).unwrap()
     }
 
     #[test]
     fn database_is_private_and_aggregates_buttons_without_event_rows() {
         let temporary = TempDir::new().unwrap();
-        let path = temporary.path().join("data/sayall/statistics.db");
+        let path = temporary.path().join("data/omavoice/statistics.db");
         let database = StatisticsDatabase::open(&path).unwrap();
 
         database.record_button_at(1_787_450_000, "up").unwrap();
@@ -728,7 +728,7 @@ mod tests {
     #[test]
     fn schema_one_database_migrates_without_losing_aggregates() {
         let temporary = TempDir::new().unwrap();
-        let path = temporary.path().join("data/sayall/statistics.db");
+        let path = temporary.path().join("data/omavoice/statistics.db");
         fs::create_dir_all(path.parent().unwrap()).unwrap();
         let connection = Connection::open(&path).unwrap();
         connection

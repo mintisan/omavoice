@@ -139,8 +139,8 @@ where
 
 pub fn help_text() -> &'static str {
     tr(
-        "Usage: sayall-doctor [--json] [--phase <0a|0b|1|2|3|4|5|6>]\n\nRead-only checks of the system capabilities OmaVoice needs on Omarchy Linux.\nThe default is the current phase, 0a. Components needed only by later phases do not block it.\n\nOptions:\n  --json          Print stable, machine-readable JSON\n  --phase <value> Check readiness for a development phase\n  -h, --help      Show help\n",
-        "用法：sayall-doctor [--json] [--phase <0a|0b|1|2|3|4|5|6>]\n\n只读检查 Omarchy Linux 上运行 OmaVoice 所需的系统能力。\n默认检查当前阶段 0a；缺少以后阶段才需要的组件不会阻塞当前阶段。\n\n选项：\n  --json          输出稳定、机器可读的 JSON\n  --phase <值>    检查指定开发阶段的就绪状态\n  -h, --help      显示帮助\n",
+        "Usage: omavoice-doctor [--json] [--phase <0a|0b|1|2|3|4|5|6>]\n\nRead-only checks of the system capabilities OmaVoice needs on Omarchy Linux.\nThe default is the current phase, 0a. Components needed only by later phases do not block it.\n\nOptions:\n  --json          Print stable, machine-readable JSON\n  --phase <value> Check readiness for a development phase\n  -h, --help      Show help\n",
+        "用法：omavoice-doctor [--json] [--phase <0a|0b|1|2|3|4|5|6>]\n\n只读检查 Omarchy Linux 上运行 OmaVoice 所需的系统能力。\n默认检查当前阶段 0a；缺少以后阶段才需要的组件不会阻塞当前阶段。\n\n选项：\n  --json          输出稳定、机器可读的 JSON\n  --phase <值>    检查指定开发阶段的就绪状态\n  -h, --help      显示帮助\n",
     )
 }
 
@@ -197,10 +197,10 @@ pub fn collect_system_snapshot() -> SystemSnapshot {
         handy_available: command_exists("handy") || command_exists("Handy"),
         handy_service_ready: command_success(
             "systemctl",
-            &["--user", "is-enabled", "--quiet", "sayall-handy.service"],
+            &["--user", "is-enabled", "--quiet", "omavoice-handy.service"],
         ) && command_success(
             "systemctl",
-            &["--user", "is-active", "--quiet", "sayall-handy.service"],
+            &["--user", "is-active", "--quiet", "omavoice-handy.service"],
         ),
         statistics_service_ready: command_success(
             "systemctl",
@@ -208,7 +208,7 @@ pub fn collect_system_snapshot() -> SystemSnapshot {
                 "--user",
                 "is-enabled",
                 "--quiet",
-                "sayall-statistics.service",
+                "omavoice-statistics.service",
             ],
         ) && command_success(
             "systemctl",
@@ -216,16 +216,21 @@ pub fn collect_system_snapshot() -> SystemSnapshot {
                 "--user",
                 "is-active",
                 "--quiet",
-                "sayall-statistics.service",
+                "omavoice-statistics.service",
             ],
         ),
-        atvvoice_available: command_exists("sayall-atvvoice") || command_exists("atvvoice"),
+        atvvoice_available: command_exists("omavoice-atvvoice") || command_exists("atvvoice"),
         atvvoice_service_active: command_success(
             "systemctl",
-            &["--user", "is-active", "--quiet", "sayall-atvvoice.service"],
+            &[
+                "--user",
+                "is-active",
+                "--quiet",
+                "omavoice-atvvoice.service",
+            ],
         ),
         atvvoice_source_available: command_output("wpctl", &["status", "-n"])
-            .is_some_and(|output| output.contains("atvvoice-sayall-rc003")),
+            .is_some_and(|output| output.contains("atvvoice-omavoice-rc003")),
         text_injectors: available_commands(&["wtype", "ydotool"]),
         remappers: available_commands(&["keyd", "makima", "input-remapper", "evremap"]),
     }
@@ -446,12 +451,12 @@ pub fn evaluate(snapshot: &SystemSnapshot, target_phase: Phase) -> DoctorReport 
         snapshot.atvvoice_service_active,
         Some(Phase::One),
         tr(
-            "sayall-atvvoice.service is running",
-            "sayall-atvvoice.service 正在运行",
+            "omavoice-atvvoice.service is running",
+            "omavoice-atvvoice.service 正在运行",
         ),
         tr(
-            "Run the OmaVoice user installer or start sayall-atvvoice.service",
-            "请运行 OmaVoice 用户态安装脚本，或启动 sayall-atvvoice.service",
+            "Run the OmaVoice user installer or start omavoice-atvvoice.service",
+            "请运行 OmaVoice 用户态安装脚本，或启动 omavoice-atvvoice.service",
         ),
     );
     push_check(
@@ -462,12 +467,12 @@ pub fn evaluate(snapshot: &SystemSnapshot, target_phase: Phase) -> DoctorReport 
         snapshot.atvvoice_source_available,
         Some(Phase::One),
         tr(
-            "The atvvoice-sayall-rc003 source is available",
-            "atvvoice-sayall-rc003 输入源可用",
+            "The atvvoice-omavoice-rc003 source is available",
+            "atvvoice-omavoice-rc003 输入源可用",
         ),
         tr(
-            "Check sayallctl status and the user journal; if HCI timeouts occur at the same time, stop the service and recover the Bluetooth controller first",
-            "请检查 sayallctl status 与用户日志；若同期存在 HCI timeout，请停止服务并先恢复蓝牙控制器",
+            "Check omavoicectl status and the user journal; if HCI timeouts occur at the same time, stop the service and recover the Bluetooth controller first",
+            "请检查 omavoicectl status 与用户日志；若同期存在 HCI timeout，请停止服务并先恢复蓝牙控制器",
         ),
     );
     push_check(
@@ -507,12 +512,12 @@ pub fn evaluate(snapshot: &SystemSnapshot, target_phase: Phase) -> DoctorReport 
         snapshot.handy_service_ready,
         Some(Phase::Six),
         tr(
-            "sayall-handy.service is enabled and running",
-            "sayall-handy.service 已启用并正在运行",
+            "omavoice-handy.service is enabled and running",
+            "omavoice-handy.service 已启用并正在运行",
         ),
         tr(
-            "Run systemctl --user enable --now sayall-handy.service",
-            "请运行 systemctl --user enable --now sayall-handy.service",
+            "Run systemctl --user enable --now omavoice-handy.service",
+            "请运行 systemctl --user enable --now omavoice-handy.service",
         ),
     );
     push_check(
@@ -523,12 +528,12 @@ pub fn evaluate(snapshot: &SystemSnapshot, target_phase: Phase) -> DoctorReport 
         snapshot.statistics_service_ready,
         Some(Phase::Six),
         tr(
-            "sayall-statistics.service is enabled and running",
-            "sayall-statistics.service 已启用并正在运行",
+            "omavoice-statistics.service is enabled and running",
+            "omavoice-statistics.service 已启用并正在运行",
         ),
         tr(
-            "Run the OmaVoice user installer again or start sayall-statistics.service",
-            "请重新运行 OmaVoice 用户态安装脚本，或启动 sayall-statistics.service",
+            "Run the OmaVoice user installer again or start omavoice-statistics.service",
+            "请重新运行 OmaVoice 用户态安装脚本，或启动 omavoice-statistics.service",
         ),
     );
     push_check_with_detail(

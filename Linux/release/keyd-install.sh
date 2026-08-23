@@ -41,13 +41,13 @@ done
 (cd "$ROOT" && sha256sum --quiet -c PAYLOAD-SHA256SUMS) ||
   fail 'package verification failed' '包校验失败'
 /usr/bin/pkexec /usr/bin/install -D -m 0755 -- \
-  "$ROOT/optional-keyd/sayall-keyd-helper" /usr/lib/sayall/sayall-keyd-helper
+  "$ROOT/optional-keyd/omavoice-keyd-helper" /usr/lib/omavoice/omavoice-keyd-helper
 /usr/bin/pkexec /usr/bin/install -D -m 0644 -- \
-  "$ROOT/optional-keyd/app.sayall.keyd.policy" \
-  /usr/share/polkit-1/actions/app.sayall.keyd.policy
-cmp -s "$ROOT/optional-keyd/sayall-keyd-helper" /usr/lib/sayall/sayall-keyd-helper &&
-  cmp -s "$ROOT/optional-keyd/app.sayall.keyd.policy" \
-    /usr/share/polkit-1/actions/app.sayall.keyd.policy ||
+  "$ROOT/optional-keyd/app.omavoice.keyd.policy" \
+  /usr/share/polkit-1/actions/app.omavoice.keyd.policy
+cmp -s "$ROOT/optional-keyd/omavoice-keyd-helper" /usr/lib/omavoice/omavoice-keyd-helper &&
+  cmp -s "$ROOT/optional-keyd/app.omavoice.keyd.policy" \
+    /usr/share/polkit-1/actions/app.omavoice.keyd.policy ||
   fail 'deployed bytes differ' '安装内容不一致'
 if zh; then
   echo 'keyd 组件已安装；未修改 /etc/keyd。'

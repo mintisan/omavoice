@@ -6,6 +6,12 @@ OmaVoice 可以把兼容的蓝牙语音遥控器变成 Omarchy Linux 上的全�
 
 > **项目状态：** `v0.1.0` 是面向 x86_64 Omarchy/Arch 的预览版本，主要支持小米蓝牙语音遥控器 2 Pro（RC003）。它已在一台 Omarchy 电脑上完成较充分的真机测试，但尚不宣称支持 RC001 和所有蓝牙/GPU 环境。
 
+## 界面截图
+
+| 系统概览 | 遥控器按键配置 |
+| --- | --- |
+| ![Omarchy Linux 上的 OmaVoice 系统概览](Screenshots/overview-zh.png) | ![Omarchy Linux 上的 OmaVoice 遥控器按键配置](Screenshots/buttons-zh.png) |
+
 ## 快速开始
 
 ### 1. 安装系统依赖
@@ -56,21 +62,21 @@ OmaVoice 不会下载语音模型，也不会改变 Handy 已选择的模型/API
 ### 5. 验证安装
 
 ```bash
-sayallctl status
-sayallctl doctor
+omavoicectl status
+omavoicectl doctor
 ```
 
-正常状态是四个用户服务持续运行，并且只有一个 `atvvoice-sayall-rc003` PipeWire 输入源。如果 Doctor 提示缺少 evdev/uinput 权限，请先核对原因，再把当前用户加入 `input` 组，并重新登录。
+正常状态是四个用户服务持续运行，并且只有一个 `atvvoice-omavoice-rc003` PipeWire 输入源。如果 Doctor 提示缺少 evdev/uinput 权限，请先核对原因，再把当前用户加入 `input` 组，并重新登录。
 
 ## 更新与卸载
 
 更新时，校验并解压新 Release，再运行其中的 `./install.sh`。重复安装会保留设置、模型、统计和文字档案，并拒绝覆盖已被本地修改的托管文件。
 
 ```bash
-sayallctl uninstall
+omavoicectl uninstall
 ```
 
-卸载只删除摘要仍与 OmaVoice 安装清单一致的文件；用户配置、Handy 模型/历史、匿名统计和可选文字档案都会保留。两个可选的系统 keyd 组件需要按 `optional-keyd/uninstall.sh` 打印的管理员命令显式删除；`/etc/keyd/sayall-rc003.conf` 会保留，供用户核对。
+卸载只删除摘要仍与 OmaVoice 安装清单一致的文件；用户配置、Handy 模型/历史、匿名统计和可选文字档案都会保留。两个可选的系统 keyd 组件需要按 `optional-keyd/uninstall.sh` 打印的管理员命令显式删除；`/etc/keyd/omavoice-rc003.conf` 会保留，供用户核对。
 
 ## 包含的功能
 
@@ -81,15 +87,15 @@ sayallctl uninstall
 - 不保存正文或按键序列的本机匿名聚合统计。
 - 默认关闭的本机文字档案；始终不保存音频。
 
-首版继续保留 `sayall-*`、`app.sayall.*` 和 XDG `sayall/` 内部标识作为兼容边界；这些不是产品品牌。
+安装后的命令、服务、桌面 ID 和 XDG 目录统一使用 `omavoice` 名称。
 
 ## 语言
 
 英文是默认和兜底语言。当 `LANGUAGE`、`LC_ALL`、`LC_MESSAGES` 或 `LANG` 以 `zh` 开头时使用简体中文。
 
 ```bash
-LANG=en_US.UTF-8 sayall-settings
-LANG=zh_CN.UTF-8 sayall-settings
+LANG=en_US.UTF-8 omavoice-settings
+LANG=zh_CN.UTF-8 omavoice-settings
 ```
 
 ## 隐私与权限
@@ -98,7 +104,7 @@ LANG=zh_CN.UTF-8 sayall-settings
 - 只有用户明确开启后才复制文字正文，并与匿名统计分库保存。
 - OmaVoice 统计不保存音频、API Key、窗口标题、当前应用名称或完整按键序列。
 - BlueZ 负责扫描/配对，PipeWire 负责音频路由，Handy 负责推理和模型/API 设置。
-- 只有显式的可选 PolicyKit 流程才能安装或调用固定的 `/usr/lib/sayall` helper。
+- 只有显式的可选 PolicyKit 流程才能安装或调用固定的 `/usr/lib/omavoice` helper。
 
 ## 从源码构建
 
@@ -107,8 +113,8 @@ LANG=zh_CN.UTF-8 sayall-settings
 [mise](https://mise.jdx.dev/)，请先安装，然后运行：
 
 ```bash
-cargo test --manifest-path Linux/SayAllLinux/Cargo.toml --locked --all-targets
-cargo build --manifest-path Linux/SayAllLinux/Cargo.toml --locked --release --bins
+cargo test --manifest-path Linux/OmaVoiceLinux/Cargo.toml --locked --all-targets
+cargo build --manifest-path Linux/OmaVoiceLinux/Cargo.toml --locked --release --bins
 bash Linux/ATVVoice/build-patched.sh /tmp/omavoice-atvvoice
 mise install
 bash Linux/Handy/build-pinned.sh /tmp/omavoice-handy

@@ -39,9 +39,9 @@ OmaVoice 设置与托盘
 
 OmaVoice 不新增另一套蓝牙栈、音频服务器、推理引擎或任意 root 命令层。
 
-## 兼容标识
+## 安装标识
 
-首版有意保留 `sayall-*`、`app.sayall.*`、`/usr/lib/sayall`、`/etc/keyd/sayall-rc003.conf` 和 XDG `sayall/` 名称。这些标识连接了已验证的 unit、Profile、PolicyKit policy 和本机数据库。未来改名必须具备原子迁移和回滚方案。
+命令、unit、桌面与 PolicyKit ID、helper 目录、keyd 配置和 XDG 路径统一使用 `omavoice` 命名空间。
 
 ## 隐私模型
 

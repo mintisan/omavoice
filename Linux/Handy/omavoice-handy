@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export PIPEWIRE_NODE="atvvoice-sayall-rc003"
+export PIPEWIRE_NODE="atvvoice-omavoice-rc003"
 exec "$(dirname -- "${BASH_SOURCE[0]}")/handy" "$@"

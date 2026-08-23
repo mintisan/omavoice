@@ -10,6 +10,6 @@ OmaVoice is a modified Linux work based on the GPL-3.0-only SayAll project:
 
 The Linux implementation also adapts RC003 protocol behavior documented by the GPL-3.0-only `remote-bridge-hub` project at revision `8a93f321ac71a602300c6cd77f7256fa4b63068e`.
 
-This repository intentionally marks the modified product as **OmaVoice** and does not use the original project's proprietary App Logo. Existing `sayall-*` executable, service, D-Bus, PolicyKit, keyd and XDG identifiers remain solely as compatibility boundaries for the first release.
+This repository intentionally marks the modified product and its executable, service, D-Bus, PolicyKit, keyd and XDG identifiers as **OmaVoice**. It does not use the original project's proprietary App Logo.
 
 OmaVoice is not an official Omarchy or SayAll release and does not imply endorsement by upstream projects or hardware vendors.

@@ -76,12 +76,12 @@ destination() {
 }
 
 file_keys=(
-  bin/sayall-atvvoice bin/sayall-doctor bin/sayall-settings bin/sayall-statistics
-  bin/sayallctl bin/handy bin/sayall-handy
-  unit/sayall-atvvoice.service unit/sayall-settings.service
-  unit/sayall-statistics.service unit/sayall-handy.service
-  application/app.sayall.Settings.desktop application/com.pais.handy.desktop
-  icon/app.sayall.Settings.png icon/handy.png license/Handy/LICENSE data/omavoice/uninstall.sh
+  bin/omavoice-atvvoice bin/omavoice-doctor bin/omavoice-settings bin/omavoice-statistics
+  bin/omavoicectl bin/handy bin/omavoice-handy
+  unit/omavoice-atvvoice.service unit/omavoice-settings.service
+  unit/omavoice-statistics.service unit/omavoice-handy.service
+  application/app.omavoice.Settings.desktop application/com.pais.handy.desktop
+  icon/app.omavoice.Settings.png icon/handy.png license/Handy/LICENSE data/omavoice/uninstall.sh
 )
 manifest_keys=("${file_keys[@]}" lib/Handy)
 targets=()
@@ -89,20 +89,20 @@ add_target() {
   destination "$1"
   targets+=("$destination_result")
 }
-add_target "$home/.local/bin/sayall-atvvoice"
-add_target "$home/.local/bin/sayall-doctor"
-add_target "$home/.local/bin/sayall-settings"
-add_target "$home/.local/bin/sayall-statistics"
-add_target "$home/.local/bin/sayallctl"
+add_target "$home/.local/bin/omavoice-atvvoice"
+add_target "$home/.local/bin/omavoice-doctor"
+add_target "$home/.local/bin/omavoice-settings"
+add_target "$home/.local/bin/omavoice-statistics"
+add_target "$home/.local/bin/omavoicectl"
 add_target "$home/.local/bin/handy"
-add_target "$home/.local/bin/sayall-handy"
-add_target "$config/systemd/user/sayall-atvvoice.service"
-add_target "$config/systemd/user/sayall-settings.service"
-add_target "$config/systemd/user/sayall-statistics.service"
-add_target "$config/systemd/user/sayall-handy.service"
-add_target "$data/applications/app.sayall.Settings.desktop"
+add_target "$home/.local/bin/omavoice-handy"
+add_target "$config/systemd/user/omavoice-atvvoice.service"
+add_target "$config/systemd/user/omavoice-settings.service"
+add_target "$config/systemd/user/omavoice-statistics.service"
+add_target "$config/systemd/user/omavoice-handy.service"
+add_target "$data/applications/app.omavoice.Settings.desktop"
 add_target "$data/applications/com.pais.handy.desktop"
-add_target "$data/icons/hicolor/1024x1024/apps/app.sayall.Settings.png"
+add_target "$data/icons/hicolor/1024x1024/apps/app.omavoice.Settings.png"
 add_target "$data/icons/hicolor/256x256/apps/handy.png"
 add_target "$data/licenses/Handy/LICENSE"
 add_target "$data/omavoice/uninstall.sh"
@@ -134,7 +134,7 @@ while IFS=$'\t' read -r hash key extra; do
 done < <(tail -n +2 "$manifest")
 ((${#expected[@]} == ${#manifest_keys[@]})) || die 'install manifest is incomplete' '安装清单不完整'
 
-units=(sayall-atvvoice.service sayall-settings.service sayall-statistics.service sayall-handy.service)
+units=(omavoice-atvvoice.service omavoice-settings.service omavoice-statistics.service omavoice-handy.service)
 if [[ -z $stage ]] && command -v systemctl >/dev/null; then
   systemctl --user disable --now "${units[@]}" 2>/dev/null || :
 fi
@@ -173,8 +173,8 @@ tree_hash() {
 destination "$home/.local/lib/Handy"
 lib=$destination_result
 if [[ -e $lib || -L $lib ]]; then
-  if [[ ! -L $lib && -f $lib/.sayall-managed ]] &&
-    grep -Fqx "$HANDY_COMMIT" "$lib/.sayall-managed" &&
+  if [[ ! -L $lib && -f $lib/.omavoice-managed ]] &&
+    grep -Fqx "$HANDY_COMMIT" "$lib/.omavoice-managed" &&
     [[ $(tree_hash "$lib") == "${expected[lib/Handy]}" ]]; then
     rm -rf "$lib"
   else

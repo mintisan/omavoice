@@ -1,5 +1,5 @@
-use sayall_linux::i18n::{Language, language, tr};
-use sayall_linux::keyd_apply::{ApplyOutcome, apply_rc003_keyd_config};
+use omavoice_linux::i18n::{Language, language, tr};
+use omavoice_linux::keyd_apply::{ApplyOutcome, apply_rc003_keyd_config};
 use std::io::{self, Read};
 
 const MAX_CONFIG_BYTES: u64 = 16 * 1024;
@@ -11,8 +11,8 @@ fn main() {
         eprintln!(
             "{}",
             tr(
-                "Usage: sayall-keyd-helper apply-v1 (reads an OmaVoice keyd configuration from standard input)",
-                "用法：sayall-keyd-helper apply-v1（从标准输入读取 OmaVoice keyd 配置）"
+                "Usage: omavoice-keyd-helper apply-v1 (reads an OmaVoice keyd configuration from standard input)",
+                "用法：omavoice-keyd-helper apply-v1（从标准输入读取 OmaVoice keyd 配置）"
             )
         );
         std::process::exit(USAGE_EXIT_CODE);

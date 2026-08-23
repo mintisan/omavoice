@@ -16,7 +16,7 @@ locale_is_zh() {
 
 usage() {
     if locale_is_zh; then cat <<'EOF'
-用法：sayallctl <命令>
+用法：omavoicectl <命令>
 
 管理OmaVoice Linux 用户服务。
 
@@ -31,7 +31,7 @@ usage() {
   help        显示帮助
 EOF
     else cat <<'EOF'
-Usage: sayallctl <command>
+Usage: omavoicectl <command>
 
 Manage OmaVoice Linux user services.
 
@@ -74,10 +74,10 @@ data_home="${XDG_DATA_HOME:-$home_directory/.local/share}"
 [[ "$config_home" == /* ]] || fail "XDG_CONFIG_HOME must be an absolute path" "XDG_CONFIG_HOME 必须是绝对路径"
 [[ "$data_home" == /* ]] || fail "XDG_DATA_HOME must be an absolute path" "XDG_DATA_HOME 必须是绝对路径"
 
-readonly ATVVOICE_UNIT="sayall-atvvoice.service"
-readonly SETTINGS_UNIT="sayall-settings.service"
-readonly HANDY_UNIT="sayall-handy.service"
-readonly STATISTICS_UNIT="sayall-statistics.service"
+readonly ATVVOICE_UNIT="omavoice-atvvoice.service"
+readonly SETTINGS_UNIT="omavoice-settings.service"
+readonly HANDY_UNIT="omavoice-handy.service"
+readonly STATISTICS_UNIT="omavoice-statistics.service"
 
 service_units=("$ATVVOICE_UNIT" "$SETTINGS_UNIT")
 if [[ -f "$config_home/systemd/user/$STATISTICS_UNIT" ]]; then
@@ -119,7 +119,7 @@ case "$command_name" in
         ;;
     doctor)
         [[ -z "$staging_root" ]] || fail "doctor does not support a staging root" "隔离根目录不支持 doctor 命令"
-        exec "$home_directory/.local/bin/sayall-doctor" --phase 1
+        exec "$home_directory/.local/bin/omavoice-doctor" --phase 1
         ;;
     uninstall)
         uninstaller="$staging_root$data_home/omavoice/uninstall.sh"

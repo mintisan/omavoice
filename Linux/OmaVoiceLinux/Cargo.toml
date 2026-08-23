@@ -1,5 +1,5 @@
 [package]
-name = "sayall-linux"
+name = "omavoice-linux"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
@@ -21,17 +21,17 @@ serde_json = "1.0"
 tempfile = "3.23.0"
 
 [[bin]]
-name = "sayall-doctor"
-path = "src/bin/sayall-doctor.rs"
+name = "omavoice-doctor"
+path = "src/bin/omavoice-doctor.rs"
 
 [[bin]]
-name = "sayall-settings"
-path = "src/bin/sayall-settings.rs"
+name = "omavoice-settings"
+path = "src/bin/omavoice-settings.rs"
 
 [[bin]]
-name = "sayall-keyd-helper"
-path = "src/bin/sayall-keyd-helper.rs"
+name = "omavoice-keyd-helper"
+path = "src/bin/omavoice-keyd-helper.rs"
 
 [[bin]]
-name = "sayall-statistics"
-path = "src/bin/sayall-statistics.rs"
+name = "omavoice-statistics"
+path = "src/bin/omavoice-statistics.rs"

@@ -1,5 +1,5 @@
-use sayall_linux::i18n::{Language, language, tr};
-use sayall_linux::{
+use omavoice_linux::i18n::{Language, language, tr};
+use omavoice_linux::{
     CliAction, USAGE_EXIT_CODE, collect_system_snapshot, evaluate, exit_code, help_text,
     parse_args, render_human, render_json,
 };

@@ -6,6 +6,12 @@ OmaVoice turns a compatible Bluetooth voice remote into a global dictation micro
 
 > **Project status:** `v0.1.0` is an x86_64 Omarchy/Arch pre-release centered on the Xiaomi Bluetooth Voice Remote 2 Pro (RC003). It has substantial real-device validation on one Omarchy computer, but RC001 and universal Bluetooth/GPU compatibility are not yet claimed.
 
+## Screenshots
+
+| System overview | Programmable remote buttons |
+| --- | --- |
+| ![OmaVoice system overview on Omarchy Linux](Screenshots/overview-en.png) | ![OmaVoice programmable remote buttons on Omarchy Linux](Screenshots/buttons-en.png) |
+
 ## Quick start
 
 ### 1. Install system dependencies
@@ -56,21 +62,21 @@ OmaVoice never downloads a speech model or changes Handy's selected model/API. M
 ### 5. Verify the installation
 
 ```bash
-sayallctl status
-sayallctl doctor
+omavoicectl status
+omavoicectl doctor
 ```
 
-The expected steady state is four active user services and one `atvvoice-sayall-rc003` PipeWire source. If Doctor reports missing evdev/uinput access, add the current user to the `input` group only after reviewing the request, then log out and back in.
+The expected steady state is four active user services and one `atvvoice-omavoice-rc003` PipeWire source. If Doctor reports missing evdev/uinput access, add the current user to the `input` group only after reviewing the request, then log out and back in.
 
 ## Update and uninstall
 
 To update, verify and extract the newer release, then run its `./install.sh`. Repeated installation preserves settings, models, statistics and transcript data and refuses to overwrite locally modified managed files.
 
 ```bash
-sayallctl uninstall
+omavoicectl uninstall
 ```
 
-Uninstall removes only files whose hashes still match OmaVoice's install manifest. User configuration, Handy models/history, aggregate statistics and the optional transcript archive remain on disk. The two optional system keyd component files require the explicit administrator commands printed by `optional-keyd/uninstall.sh`; `/etc/keyd/sayall-rc003.conf` is deliberately retained for review.
+Uninstall removes only files whose hashes still match OmaVoice's install manifest. User configuration, Handy models/history, aggregate statistics and the optional transcript archive remain on disk. The two optional system keyd component files require the explicit administrator commands printed by `optional-keyd/uninstall.sh`; `/etc/keyd/omavoice-rc003.conf` is deliberately retained for review.
 
 ## What it includes
 
@@ -81,15 +87,15 @@ Uninstall removes only files whose hashes still match OmaVoice's install manifes
 - Private aggregate usage statistics without transcript text or key sequences.
 - Optional local transcript archive, disabled by default and never storing audio.
 
-The first release keeps existing `sayall-*`, `app.sayall.*` and XDG `sayall/` identifiers as compatibility boundaries. They are implementation names, not the product brand.
+Installed commands, services, desktop IDs and XDG directories use the `omavoice` name.
 
 ## Language
 
 English is the fallback and default. Simplified Chinese is selected when `LANGUAGE`, `LC_ALL`, `LC_MESSAGES` or `LANG` begins with `zh`.
 
 ```bash
-LANG=en_US.UTF-8 sayall-settings
-LANG=zh_CN.UTF-8 sayall-settings
+LANG=en_US.UTF-8 omavoice-settings
+LANG=zh_CN.UTF-8 omavoice-settings
 ```
 
 ## Privacy and privileges
@@ -98,7 +104,7 @@ LANG=zh_CN.UTF-8 sayall-settings
 - Transcript text is copied only after explicit opt-in and is stored separately from anonymous statistics.
 - OmaVoice statistics do not store audio, API keys, window titles, active application names or full key sequences.
 - BlueZ owns scanning/pairing; PipeWire owns audio routing; Handy owns inference and model/API settings.
-- Only the explicit optional PolicyKit flow can install or invoke the fixed `/usr/lib/sayall` helper.
+- Only the explicit optional PolicyKit flow can install or invoke the fixed `/usr/lib/omavoice` helper.
 
 ## Build from source
 
@@ -107,8 +113,8 @@ Install the runtime dependencies from Quick start plus `base-devel`, `rust`,
 [mise](https://mise.jdx.dev/) if it is not already present, then run:
 
 ```bash
-cargo test --manifest-path Linux/SayAllLinux/Cargo.toml --locked --all-targets
-cargo build --manifest-path Linux/SayAllLinux/Cargo.toml --locked --release --bins
+cargo test --manifest-path Linux/OmaVoiceLinux/Cargo.toml --locked --all-targets
+cargo build --manifest-path Linux/OmaVoiceLinux/Cargo.toml --locked --release --bins
 bash Linux/ATVVoice/build-patched.sh /tmp/omavoice-atvvoice
 mise install
 bash Linux/Handy/build-pinned.sh /tmp/omavoice-handy

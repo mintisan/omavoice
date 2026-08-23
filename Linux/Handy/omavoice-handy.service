@@ -1,16 +1,16 @@
 [Unit]
 Description=OmaVoice Handy speech input service
 Documentation=https://github.com/mintisan/omavoice
-After=graphical-session.target pipewire.service wireplumber.service sayall-atvvoice.service
-Wants=pipewire.service wireplumber.service sayall-atvvoice.service
+After=graphical-session.target pipewire.service wireplumber.service omavoice-atvvoice.service
+Wants=pipewire.service wireplumber.service omavoice-atvvoice.service
 PartOf=graphical-session.target
 ConditionEnvironment=WAYLAND_DISPLAY
-ConditionFileIsExecutable=%h/.local/bin/sayall-handy
+ConditionFileIsExecutable=%h/.local/bin/omavoice-handy
 StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-ExecStart=%h/.local/bin/sayall-handy
+ExecStart=%h/.local/bin/omavoice-handy
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true

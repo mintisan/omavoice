@@ -5,9 +5,9 @@
 <policyconfig>
   <vendor>OmaVoice</vendor>
   <vendor_url>https://github.com/mintisan/omavoice</vendor_url>
-  <icon_name>app.sayall.Settings</icon_name>
+  <icon_name>app.omavoice.Settings</icon_name>
 
-  <action id="app.sayall.keyd.apply">
+  <action id="app.omavoice.keyd.apply">
     <description>Apply OmaVoice RC003 key mappings</description>
     <description xml:lang="zh_CN">应用 OmaVoice RC003 按键映射</description>
     <message>Authentication is required to validate and apply OmaVoice RC003 key mappings</message>
@@ -17,7 +17,7 @@
       <allow_inactive>auth_admin</allow_inactive>
       <allow_active>auth_admin_keep</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/sayall/sayall-keyd-helper</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/omavoice/omavoice-keyd-helper</annotate>
     <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
   </action>
 </policyconfig>

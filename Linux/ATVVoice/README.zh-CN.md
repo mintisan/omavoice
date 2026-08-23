@@ -28,7 +28,7 @@ bash Linux/ATVVoice/build-patched.sh
 或指定一个不存在或为空的用户态输出目录：
 
 ```bash
-bash Linux/ATVVoice/build-patched.sh /tmp/sayall-atvvoice-check
+bash Linux/ATVVoice/build-patched.sh /tmp/omavoice-atvvoice-check
 ```
 
 脚本会依次校验补丁摘要、获取固定基线、应用补丁、校验最终 Git tree、执行 `cargo test --locked --all-targets` 并构建 release 二进制。它不会使用 `sudo`，也不会安装二进制、创建服务、修改 BlueZ/PipeWire 配置或启动 ATVVoice。输出目录会保留，便于审计构建结果。

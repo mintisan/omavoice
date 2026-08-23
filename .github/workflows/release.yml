@@ -47,29 +47,38 @@ jobs:
           test "$GITHUB_REF_NAME" = "v$version"
           manifest_version=$(sed -n \
             '/^version = /{s/^version = "\([^"]*\)"/\1/p;q}' \
-            Linux/SayAllLinux/Cargo.toml)
+            Linux/OmaVoiceLinux/Cargo.toml)
           test "$version" = "$manifest_version"
           test -z "$(git status --porcelain --untracked-files=all)"
-          cargo fmt --manifest-path Linux/SayAllLinux/Cargo.toml --all -- --check
+          cargo fmt --manifest-path Linux/OmaVoiceLinux/Cargo.toml --all -- --check
           git diff --check
+          test -z "$(git grep -Il -i sayall -- Linux docs || true)"
+          test -z "$(git ls-files Linux docs | grep -i sayall || true)"
           bash -n \
-            Linux/*.sh Linux/sayallctl Linux/ATVVoice/*.sh \
-            Linux/Handy/*.sh Linux/Handy/sayall-handy Linux/release/*.sh
+            Linux/*.sh Linux/omavoicectl Linux/ATVVoice/*.sh \
+            Linux/Handy/*.sh Linux/Handy/omavoice-handy Linux/release/*.sh
           python3 -m py_compile \
             Linux/release/check-markdown-links.py \
             Linux/release/rust-licenses.py Linux/release/js-licenses.py
           rm -rf Linux/release/__pycache__
           python3 Linux/release/check-markdown-links.py .
           desktop-file-validate Linux/*.desktop Linux/Handy/*.desktop
-          systemd-analyze verify --user Linux/systemd/*.service Linux/Handy/*.service
+          verify_home=$(mktemp -d)
+          mkdir -p "$verify_home/.local/bin"
+          for executable in omavoice-atvvoice omavoice-settings omavoice-statistics omavoice-handy; do
+            ln -s /usr/bin/true "$verify_home/.local/bin/$executable"
+          done
+          HOME="$verify_home" systemd-analyze verify --user \
+            Linux/systemd/*.service Linux/Handy/*.service
+          rm -rf "$verify_home"
 
       - name: Test and build OmaVoice
         run: |
           set -euo pipefail
-          cargo test --manifest-path Linux/SayAllLinux/Cargo.toml --locked --all-targets
-          cargo clippy --manifest-path Linux/SayAllLinux/Cargo.toml \
+          cargo test --manifest-path Linux/OmaVoiceLinux/Cargo.toml --locked --all-targets
+          cargo clippy --manifest-path Linux/OmaVoiceLinux/Cargo.toml \
             --locked --all-targets -- -D warnings
-          cargo build --manifest-path Linux/SayAllLinux/Cargo.toml \
+          cargo build --manifest-path Linux/OmaVoiceLinux/Cargo.toml \
             --locked --release --bins
 
       - name: Build pinned ATVVoice

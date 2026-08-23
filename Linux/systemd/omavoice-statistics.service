@@ -7,7 +7,7 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-ExecStart=%h/.local/bin/sayall-statistics
+ExecStart=%h/.local/bin/omavoice-statistics
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true

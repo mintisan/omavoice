@@ -132,36 +132,36 @@ if [[ "$enable_services" == true ]]; then
             "检测到手动启动的 atvvoice；请先正常停止 PoC，再重新运行安装"
     done < <(process_pids_by_argv0 "atvvoice")
 
-    managed_atvvoice_pid="$(systemctl --user show --property MainPID --value sayall-atvvoice.service 2>/dev/null || true)"
+    managed_atvvoice_pid="$(systemctl --user show --property MainPID --value omavoice-atvvoice.service 2>/dev/null || true)"
     while IFS= read -r pid; do
         if [[ -z "$managed_atvvoice_pid" || "$managed_atvvoice_pid" == "0" || "$pid" != "$managed_atvvoice_pid" ]]; then
             fail \
-                "an unmanaged sayall-atvvoice process is running; stop it before installing" \
-                "检测到不受用户服务管理的 sayall-atvvoice；请先停止该进程"
+                "an unmanaged omavoice-atvvoice process is running; stop it before installing" \
+                "检测到不受用户服务管理的 omavoice-atvvoice；请先停止该进程"
         fi
-    done < <(process_pids_by_argv0 "sayall-atvvoice")
+    done < <(process_pids_by_argv0 "omavoice-atvvoice")
 
-    managed_settings_pid="$(systemctl --user show --property MainPID --value sayall-settings.service 2>/dev/null || true)"
+    managed_settings_pid="$(systemctl --user show --property MainPID --value omavoice-settings.service 2>/dev/null || true)"
     while IFS= read -r pid; do
         if [[ -z "$managed_settings_pid" || "$managed_settings_pid" == "0" || "$pid" != "$managed_settings_pid" ]]; then
             fail \
-                "an unmanaged sayall-settings process is running; quit it before installing" \
-                "检测到不受用户服务管理的 sayall-settings；请先退出该进程"
+                "an unmanaged omavoice-settings process is running; quit it before installing" \
+                "检测到不受用户服务管理的 omavoice-settings；请先退出该进程"
         fi
-    done < <(process_pids_by_argv0 "sayall-settings")
+    done < <(process_pids_by_argv0 "omavoice-settings")
 
-    managed_statistics_pid="$(systemctl --user show --property MainPID --value sayall-statistics.service 2>/dev/null || true)"
+    managed_statistics_pid="$(systemctl --user show --property MainPID --value omavoice-statistics.service 2>/dev/null || true)"
     while IFS= read -r pid; do
         if [[ -z "$managed_statistics_pid" || "$managed_statistics_pid" == "0" || "$pid" != "$managed_statistics_pid" ]]; then
             fail \
-                "an unmanaged sayall-statistics process is running; stop it before installing" \
-                "检测到不受用户服务管理的 sayall-statistics；请先停止该进程"
+                "an unmanaged omavoice-statistics process is running; stop it before installing" \
+                "检测到不受用户服务管理的 omavoice-statistics；请先停止该进程"
         fi
-    done < <(process_pids_by_argv0 "sayall-statistics")
+    done < <(process_pids_by_argv0 "omavoice-statistics")
 fi
 
 if [[ -z "$atvvoice_build_directory" ]]; then
-    temporary_atvvoice_build="$(mktemp -d -t sayall-atvvoice-install.XXXXXX)"
+    temporary_atvvoice_build="$(mktemp -d -t omavoice-atvvoice-install.XXXXXX)"
     atvvoice_build_directory="$temporary_atvvoice_build"
     bash "$SCRIPT_DIR/ATVVoice/build-patched.sh" "$atvvoice_build_directory"
 fi
@@ -174,18 +174,18 @@ actual_tree="$(git -C "$atvvoice_build_directory/source" rev-parse 'HEAD^{tree}'
 [[ "$actual_tree" == "$EXPECTED_ATVVOICE_TREE" ]] || \
     fail "ATVVoice source tree does not match the pinned candidate" "ATVVoice 源码 tree 不匹配固定候选"
 
-readonly sayall_target_directory="$SCRIPT_DIR/SayAllLinux/target"
+readonly omavoice_target_directory="$SCRIPT_DIR/OmaVoiceLinux/target"
 if locale_is_zh; then
     printf '构建 OmaVoice Linux release 二进制...\n'
 else
     printf 'Building OmaVoice Linux release binaries...\n'
 fi
 cargo build \
-    --manifest-path "$SCRIPT_DIR/SayAllLinux/Cargo.toml" \
+    --manifest-path "$SCRIPT_DIR/OmaVoiceLinux/Cargo.toml" \
     --locked \
     --release \
     --bins \
-    --target-dir "$sayall_target_directory"
+    --target-dir "$omavoice_target_directory"
 
 destination() {
     printf '%s%s' "$staging_root" "$1"
@@ -212,17 +212,17 @@ unit_directory="$(destination "$config_home/systemd/user")"
 application_directory="$(destination "$data_home/applications")"
 icon_directory="$(destination "$data_home/icons/hicolor/1024x1024/apps")"
 
-install_file "$atvvoice_build_directory/target/release/atvvoice" "$bin_directory/sayall-atvvoice" 0755
-install_file "$sayall_target_directory/release/sayall-doctor" "$bin_directory/sayall-doctor" 0755
-install_file "$sayall_target_directory/release/sayall-settings" "$bin_directory/sayall-settings" 0755
-install_file "$sayall_target_directory/release/sayall-statistics" "$bin_directory/sayall-statistics" 0755
-install_file "$SCRIPT_DIR/sayallctl" "$bin_directory/sayallctl" 0755
-install_file "$SCRIPT_DIR/systemd/sayall-atvvoice.service" "$unit_directory/sayall-atvvoice.service" 0644
-install_file "$SCRIPT_DIR/systemd/sayall-settings.service" "$unit_directory/sayall-settings.service" 0644
-install_file "$SCRIPT_DIR/systemd/sayall-statistics.service" "$unit_directory/sayall-statistics.service" 0644
-install_file "$SCRIPT_DIR/app.sayall.Settings.desktop" "$application_directory/app.sayall.Settings.desktop" 0644
-install_file "$REPOSITORY_ROOT/Resources/OmaVoice.png" "$icon_directory/app.sayall.Settings.png" 0644
-install -d -m 0700 -- "$(destination "$data_home/sayall")"
+install_file "$atvvoice_build_directory/target/release/atvvoice" "$bin_directory/omavoice-atvvoice" 0755
+install_file "$omavoice_target_directory/release/omavoice-doctor" "$bin_directory/omavoice-doctor" 0755
+install_file "$omavoice_target_directory/release/omavoice-settings" "$bin_directory/omavoice-settings" 0755
+install_file "$omavoice_target_directory/release/omavoice-statistics" "$bin_directory/omavoice-statistics" 0755
+install_file "$SCRIPT_DIR/omavoicectl" "$bin_directory/omavoicectl" 0755
+install_file "$SCRIPT_DIR/systemd/omavoice-atvvoice.service" "$unit_directory/omavoice-atvvoice.service" 0644
+install_file "$SCRIPT_DIR/systemd/omavoice-settings.service" "$unit_directory/omavoice-settings.service" 0644
+install_file "$SCRIPT_DIR/systemd/omavoice-statistics.service" "$unit_directory/omavoice-statistics.service" 0644
+install_file "$SCRIPT_DIR/app.omavoice.Settings.desktop" "$application_directory/app.omavoice.Settings.desktop" 0644
+install_file "$REPOSITORY_ROOT/Resources/OmaVoice.png" "$icon_directory/app.omavoice.Settings.png" 0644
+install -d -m 0700 -- "$(destination "$data_home/omavoice")"
 
 if [[ -n "$staging_root" ]]; then
     if locale_is_zh; then
@@ -242,21 +242,21 @@ fi
 if [[ "$enable_services" == false ]]; then
     if locale_is_zh; then
         printf '用户态文件安装完成，尚未启用服务。\n'
-        printf '确认后运行：sayallctl start\n'
+        printf '确认后运行：omavoicectl start\n'
     else
         printf 'User files are installed, but services are not enabled.\n'
-        printf 'After review, run: sayallctl start\n'
+        printf 'After review, run: omavoicectl start\n'
     fi
     exit 0
 fi
 
 systemctl --user daemon-reload
-systemctl --user enable sayall-atvvoice.service sayall-settings.service sayall-statistics.service
-systemctl --user restart sayall-atvvoice.service sayall-settings.service sayall-statistics.service
+systemctl --user enable omavoice-atvvoice.service omavoice-settings.service omavoice-statistics.service
+systemctl --user restart omavoice-atvvoice.service omavoice-settings.service omavoice-statistics.service
 
 if locale_is_zh; then
     printf 'OmaVoice Linux 用户态运行时安装完成。\n'
 else
     printf 'The OmaVoice Linux user runtime is installed.\n'
 fi
-systemctl --user --no-pager --full status sayall-atvvoice.service sayall-settings.service sayall-statistics.service || true
+systemctl --user --no-pager --full status omavoice-atvvoice.service omavoice-settings.service omavoice-statistics.service || true

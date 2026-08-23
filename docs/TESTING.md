@@ -32,4 +32,4 @@
 - Multi-display overlay placement and all third-party applications.
 - Recording beyond the remote firmware's observed lease without physical validation.
 
-Collect sanitized logs with `sayallctl status`, `sayallctl doctor`, and `journalctl --user` for the four managed units. Never publish a coredump, API key, transcript database, recording or unredacted Bluetooth address.
+Collect sanitized logs with `omavoicectl status`, `omavoicectl doctor`, and `journalctl --user` for the four managed units. Never publish a coredump, API key, transcript database, recording or unredacted Bluetooth address.

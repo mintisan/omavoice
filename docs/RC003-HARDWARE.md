@@ -66,7 +66,7 @@ it is not user-configurable.
 
 - ATVV v1.0 HoldToTalk, 16 kHz mono IMA/DVI ADPCM, 120-byte frames.
 - Patched ATVVoice resets decoder state per session and publishes one stable
-  `Audio/Source` named `atvvoice-sayall-rc003`.
+  `Audio/Source` named `atvvoice-omavoice-rc003`.
 - Handy is routed to that source with `PIPEWIRE_NODE` while the system default
   microphone remains unchanged.
 - A real Mic hold produced the Handy bottom overlay, accurate Simplified

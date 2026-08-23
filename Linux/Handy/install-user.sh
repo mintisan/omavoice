@@ -3,7 +3,7 @@ set -euo pipefail
 
 HANDY_COMMIT="9bcb6d9d46c88517d2b5519d3a4f900ee3968c99"
 HANDY_TREE="65254d74f1a0465ac684790f29a79c9c894c5dc1"
-MANAGED_MARKER=".sayall-managed"
+MANAGED_MARKER=".omavoice-managed"
 
 usage() {
   cat <<'EOF'
@@ -85,8 +85,8 @@ APPLICATION_DIRECTORY="$(destination "$HOME/.local/share/applications")"
 ICON_DIRECTORY="$(destination "$HOME/.local/share/icons/hicolor/256x256/apps")"
 LICENSE_DIRECTORY="$(destination "$HOME/.local/share/licenses/Handy")"
 BINARY="${BIN_DIRECTORY}/handy"
-LAUNCHER="${BIN_DIRECTORY}/sayall-handy"
-UNIT_FILE="${UNIT_DIRECTORY}/sayall-handy.service"
+LAUNCHER="${BIN_DIRECTORY}/omavoice-handy"
+UNIT_FILE="${UNIT_DIRECTORY}/omavoice-handy.service"
 DESKTOP_FILE="${APPLICATION_DIRECTORY}/com.pais.handy.desktop"
 ICON_FILE="${ICON_DIRECTORY}/handy.png"
 LICENSE_FILE="${LICENSE_DIRECTORY}/LICENSE"
@@ -101,7 +101,7 @@ if (( UNINSTALL )); then
   [[ -f "${LIBRARY_DIRECTORY}/${MANAGED_MARKER}" ]] || \
     fail "refusing to remove an installation not managed by OmaVoice: ${LIBRARY_DIRECTORY}"
   if [[ -z "$STAGING_ROOT" ]] && command -v systemctl >/dev/null 2>&1; then
-    systemctl --user disable --now sayall-handy.service 2>/dev/null || true
+    systemctl --user disable --now omavoice-handy.service 2>/dev/null || true
   fi
   if [[ -z "$STAGING_ROOT" ]] && pgrep -x handy >/dev/null 2>&1; then
     fail "Handy is still running; quit it before uninstalling"
@@ -110,7 +110,7 @@ if (( UNINSTALL )); then
     "$BINARY" \
     "$LAUNCHER" \
     "$UNIT_FILE" \
-    "${UNIT_DIRECTORY}/graphical-session.target.wants/sayall-handy.service" \
+    "${UNIT_DIRECTORY}/graphical-session.target.wants/omavoice-handy.service" \
     "$DESKTOP_FILE" \
     "$ICON_FILE" \
     "$LICENSE_FILE"
@@ -230,8 +230,8 @@ rm -rf "$LIBRARY_DIRECTORY"
 mv "$TEMP_LIBRARY" "$LIBRARY_DIRECTORY"
 TEMP_LIBRARY=""
 install -m 0755 "${RELEASE_DIRECTORY}/handy" "$BINARY"
-install -m 0755 "${SCRIPT_DIRECTORY}/sayall-handy" "$LAUNCHER"
-install -m 0644 "${SCRIPT_DIRECTORY}/sayall-handy.service" "$UNIT_FILE"
+install -m 0755 "${SCRIPT_DIRECTORY}/omavoice-handy" "$LAUNCHER"
+install -m 0644 "${SCRIPT_DIRECTORY}/omavoice-handy.service" "$UNIT_FILE"
 install -m 0644 "${SOURCE_DIRECTORY}/src-tauri/icons/128x128@2x.png" "$ICON_FILE"
 install -m 0644 "${SOURCE_DIRECTORY}/LICENSE" "$LICENSE_FILE"
 install -m 0644 "${SCRIPT_DIRECTORY}/com.pais.handy.desktop" "$DESKTOP_FILE"
@@ -244,7 +244,7 @@ fi
 if (( ENABLE_SERVICE )); then
   command -v systemctl >/dev/null 2>&1 || fail "systemctl is required to enable the Handy user service"
   systemctl --user daemon-reload
-  systemctl --user enable --now sayall-handy.service
+  systemctl --user enable --now omavoice-handy.service
 fi
 
 printf 'Installed Handy %s for the current user.\n' "$HANDY_COMMIT"

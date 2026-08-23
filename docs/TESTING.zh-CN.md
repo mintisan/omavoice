@@ -32,4 +32,4 @@
 - 多显示器悬浮位置和全部第三方应用。
 - 未经实体验证即可突破遥控器固件的录音租期。
 
-可使用 `sayallctl status`、`sayallctl doctor` 和四个用户 unit 的 `journalctl --user` 收集脱敏日志。不要公开 coredump、API Key、文字数据库、录音或未隐藏的蓝牙地址。
+可使用 `omavoicectl status`、`omavoicectl doctor` 和四个用户 unit 的 `journalctl --user` 收集脱敏日志。不要公开 coredump、API Key、文字数据库、录音或未隐藏的蓝牙地址。

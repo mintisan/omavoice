@@ -29,7 +29,7 @@ if (( $# == 1 )); then
         exit 1
     fi
 else
-    WORK_DIR="$(mktemp -d -t sayall-atvvoice-build.XXXXXX)"
+    WORK_DIR="$(mktemp -d -t omavoice-atvvoice-build.XXXXXX)"
 fi
 readonly WORK_DIR
 readonly SOURCE_DIR="$WORK_DIR/source"

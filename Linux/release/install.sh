@@ -129,26 +129,26 @@ dst() {
 }
 
 file_keys=(
-  bin/sayall-atvvoice bin/sayall-doctor bin/sayall-settings bin/sayall-statistics
-  bin/sayallctl bin/handy bin/sayall-handy
-  unit/sayall-atvvoice.service unit/sayall-settings.service
-  unit/sayall-statistics.service unit/sayall-handy.service
-  application/app.sayall.Settings.desktop application/com.pais.handy.desktop
-  icon/app.sayall.Settings.png icon/handy.png license/Handy/LICENSE data/omavoice/uninstall.sh
+  bin/omavoice-atvvoice bin/omavoice-doctor bin/omavoice-settings bin/omavoice-statistics
+  bin/omavoicectl bin/handy bin/omavoice-handy
+  unit/omavoice-atvvoice.service unit/omavoice-settings.service
+  unit/omavoice-statistics.service unit/omavoice-handy.service
+  application/app.omavoice.Settings.desktop application/com.pais.handy.desktop
+  icon/app.omavoice.Settings.png icon/handy.png license/Handy/LICENSE data/omavoice/uninstall.sh
 )
 manifest_keys=("${file_keys[@]}" lib/Handy)
 sources=(
-  "$ROOT/payload/bin/sayall-atvvoice" "$ROOT/payload/bin/sayall-doctor"
-  "$ROOT/payload/bin/sayall-settings" "$ROOT/payload/bin/sayall-statistics"
-  "$ROOT/payload/bin/sayallctl" "$ROOT/payload/bin/handy"
-  "$ROOT/payload/bin/sayall-handy"
-  "$ROOT/payload/systemd/user/sayall-atvvoice.service"
-  "$ROOT/payload/systemd/user/sayall-settings.service"
-  "$ROOT/payload/systemd/user/sayall-statistics.service"
-  "$ROOT/payload/systemd/user/sayall-handy.service"
-  "$ROOT/payload/share/applications/app.sayall.Settings.desktop"
+  "$ROOT/payload/bin/omavoice-atvvoice" "$ROOT/payload/bin/omavoice-doctor"
+  "$ROOT/payload/bin/omavoice-settings" "$ROOT/payload/bin/omavoice-statistics"
+  "$ROOT/payload/bin/omavoicectl" "$ROOT/payload/bin/handy"
+  "$ROOT/payload/bin/omavoice-handy"
+  "$ROOT/payload/systemd/user/omavoice-atvvoice.service"
+  "$ROOT/payload/systemd/user/omavoice-settings.service"
+  "$ROOT/payload/systemd/user/omavoice-statistics.service"
+  "$ROOT/payload/systemd/user/omavoice-handy.service"
+  "$ROOT/payload/share/applications/app.omavoice.Settings.desktop"
   "$ROOT/payload/share/applications/com.pais.handy.desktop"
-  "$ROOT/payload/share/icons/hicolor/1024x1024/apps/app.sayall.Settings.png"
+  "$ROOT/payload/share/icons/hicolor/1024x1024/apps/app.omavoice.Settings.png"
   "$ROOT/payload/share/icons/hicolor/256x256/apps/handy.png"
   "$ROOT/payload/share/licenses/Handy/LICENSE"
   "$ROOT/uninstall.sh"
@@ -158,20 +158,20 @@ add_target() {
   dst "$1"
   targets+=("$destination_result")
 }
-add_target "$home/.local/bin/sayall-atvvoice"
-add_target "$home/.local/bin/sayall-doctor"
-add_target "$home/.local/bin/sayall-settings"
-add_target "$home/.local/bin/sayall-statistics"
-add_target "$home/.local/bin/sayallctl"
+add_target "$home/.local/bin/omavoice-atvvoice"
+add_target "$home/.local/bin/omavoice-doctor"
+add_target "$home/.local/bin/omavoice-settings"
+add_target "$home/.local/bin/omavoice-statistics"
+add_target "$home/.local/bin/omavoicectl"
 add_target "$home/.local/bin/handy"
-add_target "$home/.local/bin/sayall-handy"
-add_target "$config/systemd/user/sayall-atvvoice.service"
-add_target "$config/systemd/user/sayall-settings.service"
-add_target "$config/systemd/user/sayall-statistics.service"
-add_target "$config/systemd/user/sayall-handy.service"
-add_target "$data/applications/app.sayall.Settings.desktop"
+add_target "$home/.local/bin/omavoice-handy"
+add_target "$config/systemd/user/omavoice-atvvoice.service"
+add_target "$config/systemd/user/omavoice-settings.service"
+add_target "$config/systemd/user/omavoice-statistics.service"
+add_target "$config/systemd/user/omavoice-handy.service"
+add_target "$data/applications/app.omavoice.Settings.desktop"
 add_target "$data/applications/com.pais.handy.desktop"
-add_target "$data/icons/hicolor/1024x1024/apps/app.sayall.Settings.png"
+add_target "$data/icons/hicolor/1024x1024/apps/app.omavoice.Settings.png"
 add_target "$data/icons/hicolor/256x256/apps/handy.png"
 add_target "$data/licenses/Handy/LICENSE"
 add_target "$data/omavoice/uninstall.sh"
@@ -182,10 +182,10 @@ lib=$destination_result
 dst "$data/omavoice/install-manifest-v1.tsv"
 manifest=$destination_result
 [[ ! -L $lib ]] || die 'refusing a symbolic-link Handy library' '拒绝使用符号链接 Handy 库'
-[[ ! -e $lib || -f $lib/.sayall-managed ]] ||
+[[ ! -e $lib || -f $lib/.omavoice-managed ]] ||
   die 'refusing to overwrite unmanaged Handy library' '拒绝覆盖非托管 Handy 库'
-if [[ -f $lib/.sayall-managed ]]; then
-  grep -Fqx "$HANDY_COMMIT" "$lib/.sayall-managed" ||
+if [[ -f $lib/.omavoice-managed ]]; then
+  grep -Fqx "$HANDY_COMMIT" "$lib/.omavoice-managed" ||
     die 'the managed Handy revision is unknown' 'Handy 托管版本未知'
 fi
 [[ ! -L $manifest ]] || die 'refusing a symbolic-link install manifest' '拒绝使用符号链接安装清单'
@@ -244,7 +244,7 @@ for index in "${!file_keys[@]}"; do
   fi
 done
 
-units=(sayall-atvvoice.service sayall-settings.service sayall-statistics.service sayall-handy.service)
+units=(omavoice-atvvoice.service omavoice-settings.service omavoice-statistics.service omavoice-handy.service)
 if [[ -z $stage && $enable == 1 ]]; then
   command -v systemctl >/dev/null || die 'systemctl missing' '缺少 systemctl'
   for unit in "${units[@]}"; do

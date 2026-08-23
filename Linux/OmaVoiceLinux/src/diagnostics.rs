@@ -8,7 +8,7 @@ use std::io::{self, Write};
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::{Path, PathBuf};
 
-const REPORT_FILE_NAME: &str = "sayall-doctor.json";
+const REPORT_FILE_NAME: &str = "omavoice-doctor.json";
 
 #[derive(Debug)]
 pub enum DiagnosticError {
@@ -72,11 +72,11 @@ impl From<serde_json::Error> for DiagnosticError {
 }
 
 pub fn diagnostic_directory_from_environment() -> Result<PathBuf, DiagnosticError> {
-    Ok(state_home_from_environment()?.join("sayall/diagnostics"))
+    Ok(state_home_from_environment()?.join("omavoice/diagnostics"))
 }
 
 pub fn log_directory_from_environment() -> Result<PathBuf, DiagnosticError> {
-    Ok(state_home_from_environment()?.join("sayall/logs"))
+    Ok(state_home_from_environment()?.join("omavoice/logs"))
 }
 
 fn state_home_from_environment() -> Result<PathBuf, DiagnosticError> {

@@ -9,7 +9,7 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-ExecStart=%h/.local/bin/sayall-atvvoice --name sayall-rc003 --description "OmaVoice remote microphone" --gain 0 --frame-timeout 0 --keep-alive 10
+ExecStart=%h/.local/bin/omavoice-atvvoice --name omavoice-rc003 --description "OmaVoice remote microphone" --gain 0 --frame-timeout 0 --keep-alive 10
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true

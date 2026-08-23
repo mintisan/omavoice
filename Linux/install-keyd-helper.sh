@@ -2,10 +2,10 @@
 set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-readonly HELPER_SOURCE="$SCRIPT_DIR/SayAllLinux/target/release/sayall-keyd-helper"
-readonly HELPER_TARGET="/usr/lib/sayall/sayall-keyd-helper"
-readonly POLICY_SOURCE="$SCRIPT_DIR/polkit/app.sayall.keyd.policy"
-readonly POLICY_TARGET="/usr/share/polkit-1/actions/app.sayall.keyd.policy"
+readonly HELPER_SOURCE="$SCRIPT_DIR/OmaVoiceLinux/target/release/omavoice-keyd-helper"
+readonly HELPER_TARGET="/usr/lib/omavoice/omavoice-keyd-helper"
+readonly POLICY_SOURCE="$SCRIPT_DIR/polkit/app.omavoice.keyd.policy"
+readonly POLICY_TARGET="/usr/share/polkit-1/actions/app.omavoice.keyd.policy"
 
 locale_is_zh() {
     local locale
@@ -29,10 +29,10 @@ command -v cargo >/dev/null 2>&1 || fail "cargo is required" "缺少 cargo"
 [[ -f "$POLICY_SOURCE" ]] || fail "PolicyKit policy is missing" "缺少 PolicyKit policy"
 
 cargo build \
-    --manifest-path "$SCRIPT_DIR/SayAllLinux/Cargo.toml" \
+    --manifest-path "$SCRIPT_DIR/OmaVoiceLinux/Cargo.toml" \
     --locked \
     --release \
-    --bin sayall-keyd-helper
+    --bin omavoice-keyd-helper
 
 /usr/bin/pkexec /usr/bin/install -D -m 0755 -- "$HELPER_SOURCE" "$HELPER_TARGET"
 /usr/bin/pkexec /usr/bin/install -D -m 0644 -- "$POLICY_SOURCE" "$POLICY_TARGET"

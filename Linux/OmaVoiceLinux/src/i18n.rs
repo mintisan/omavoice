@@ -50,7 +50,7 @@ mod tests {
     use super::Language;
 
     #[test]
-    fn locale_parsing_is_pure_and_defaults_to_english() {
+    fn locale_parsing_defaults_to_english() {
         for locale in [
             None,
             Some(""),

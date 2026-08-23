@@ -28,43 +28,52 @@ jobs:
       - name: Validate source files
         run: |
           set -euo pipefail
-          cargo fmt --manifest-path Linux/SayAllLinux/Cargo.toml --all -- --check
+          cargo fmt --manifest-path Linux/OmaVoiceLinux/Cargo.toml --all -- --check
           git diff --check
+          test -z "$(git grep -Il -i sayall -- Linux docs || true)"
+          test -z "$(git ls-files Linux docs | grep -i sayall || true)"
           bash -n \
-            Linux/*.sh Linux/sayallctl Linux/ATVVoice/*.sh \
-            Linux/Handy/*.sh Linux/Handy/sayall-handy Linux/release/*.sh
+            Linux/*.sh Linux/omavoicectl Linux/ATVVoice/*.sh \
+            Linux/Handy/*.sh Linux/Handy/omavoice-handy Linux/release/*.sh
           python3 -m py_compile \
             Linux/release/check-markdown-links.py \
             Linux/release/rust-licenses.py Linux/release/js-licenses.py
           rm -rf Linux/release/__pycache__
           python3 Linux/release/check-markdown-links.py .
           desktop-file-validate Linux/*.desktop Linux/Handy/*.desktop
-          systemd-analyze verify --user Linux/systemd/*.service Linux/Handy/*.service
+          verify_home=$(mktemp -d)
+          mkdir -p "$verify_home/.local/bin"
+          for executable in omavoice-atvvoice omavoice-settings omavoice-statistics omavoice-handy; do
+            ln -s /usr/bin/true "$verify_home/.local/bin/$executable"
+          done
+          HOME="$verify_home" systemd-analyze verify --user \
+            Linux/systemd/*.service Linux/Handy/*.service
+          rm -rf "$verify_home"
           (cd Linux/ATVVoice && sha256sum --check SHA256SUMS)
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
 
-          root = ET.parse("Linux/polkit/app.sayall.keyd.policy").getroot()
-          action = root.find("./action[@id='app.sayall.keyd.apply']")
+          root = ET.parse("Linux/polkit/app.omavoice.keyd.policy").getroot()
+          action = root.find("./action[@id='app.omavoice.keyd.apply']")
           assert action is not None
           annotation = action.find("./annotate[@key='org.freedesktop.policykit.exec.path']")
           assert annotation is not None
-          assert annotation.text == "/usr/lib/sayall/sayall-keyd-helper"
+          assert annotation.text == "/usr/lib/omavoice/omavoice-keyd-helper"
           PY
 
       - name: Test, lint, and build OmaVoice
         run: |
           set -euo pipefail
-          cargo test --manifest-path Linux/SayAllLinux/Cargo.toml --locked --all-targets
-          cargo clippy --manifest-path Linux/SayAllLinux/Cargo.toml \
+          cargo test --manifest-path Linux/OmaVoiceLinux/Cargo.toml --locked --all-targets
+          cargo clippy --manifest-path Linux/OmaVoiceLinux/Cargo.toml \
             --locked --all-targets -- -D warnings
-          cargo build --manifest-path Linux/SayAllLinux/Cargo.toml \
+          cargo build --manifest-path Linux/OmaVoiceLinux/Cargo.toml \
             --locked --release --bins
 
       - name: Verify English fallback and Simplified Chinese locale
         run: |
           set -euo pipefail
-          doctor=Linux/SayAllLinux/target/release/sayall-doctor
+          doctor=Linux/OmaVoiceLinux/target/release/omavoice-doctor
           LANGUAGE= LC_ALL=C LC_MESSAGES= LANG=C \
             "$doctor" --phase 0a > /tmp/doctor-en.txt
           LANGUAGE=zh_CN.UTF-8 LC_ALL= LC_MESSAGES= LANG=C \
@@ -74,9 +83,9 @@ jobs:
           grep -Fq 'OmaVoice Linux 能力诊断' /tmp/doctor-zh.txt
           grep -Fq '汇总：' /tmp/doctor-zh.txt
           LANGUAGE= LC_ALL=C LC_MESSAGES= LANG=C \
-            Linux/sayallctl help > /tmp/ctl-en.txt
+            Linux/omavoicectl help > /tmp/ctl-en.txt
           LANGUAGE=zh_CN.UTF-8 LC_ALL= LC_MESSAGES= LANG=C \
-            Linux/sayallctl help > /tmp/ctl-zh.txt
+            Linux/omavoicectl help > /tmp/ctl-zh.txt
           grep -Fq 'Manage OmaVoice Linux user services.' /tmp/ctl-en.txt
           grep -Fq '管理OmaVoice Linux 用户服务。' /tmp/ctl-zh.txt
           python3 - <<'PY'
@@ -91,7 +100,7 @@ jobs:
           set -euo pipefail
           work=$(mktemp -d)
           trap 'rm -rf "$work"' EXIT
-          cargo metadata --manifest-path Linux/SayAllLinux/Cargo.toml \
+          cargo metadata --manifest-path Linux/OmaVoiceLinux/Cargo.toml \
             --locked --offline --filter-platform x86_64-unknown-linux-gnu \
             --format-version 1 > "$work/metadata.json"
           python3 Linux/release/rust-licenses.py \

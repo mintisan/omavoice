@@ -1,8 +1,8 @@
 use chrono::Utc;
 use evdev::{Device, EventSummary, KeyCode};
-use sayall_linux::i18n::{Language, language, tr};
-use sayall_linux::statistics::{StatisticsDatabase, StatisticsPaths, StatisticsPeriod};
-use sayall_linux::transcripts::{TranscriptDatabase, TranscriptPaths};
+use omavoice_linux::i18n::{Language, language, tr};
+use omavoice_linux::statistics::{StatisticsDatabase, StatisticsPaths, StatisticsPeriod};
+use omavoice_linux::transcripts::{TranscriptDatabase, TranscriptPaths};
 use std::error::Error;
 use std::fs;
 use std::io;
@@ -35,8 +35,8 @@ fn run() -> Result<(), Box<dyn Error>> {
             println!(
                 "{}",
                 tr(
-                    "Usage: sayall-statistics [--import-once]\n\nBy default, continuously collect aggregate local statistics; --import-once only synchronizes metadata for completed Handy WAV files.",
-                    "用法：sayall-statistics [--import-once]\n\n默认持续采集本机聚合统计；--import-once 只同步已完成的 Handy WAV 元数据。"
+                    "Usage: omavoice-statistics [--import-once]\n\nBy default, continuously collect aggregate local statistics; --import-once only synchronizes metadata for completed Handy WAV files.",
+                    "用法：omavoice-statistics [--import-once]\n\n默认持续采集本机聚合统计；--import-once 只同步已完成的 Handy WAV 元数据。"
                 )
             );
             return Ok(());

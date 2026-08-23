@@ -63,14 +63,17 @@ jobs:
           rm -rf Linux/release/__pycache__
           python3 Linux/release/check-markdown-links.py .
           desktop-file-validate Linux/*.desktop Linux/Handy/*.desktop
-          verify_home=$(mktemp -d)
+          useradd --create-home --uid 1000 omavoice-ci
+          verify_home=/home/omavoice-ci
+          install -d -m 0700 -o omavoice-ci -g omavoice-ci /run/user/1000
           mkdir -p "$verify_home/.local/bin"
           for executable in omavoice-atvvoice omavoice-settings omavoice-statistics omavoice-handy; do
             ln -s /usr/bin/true "$verify_home/.local/bin/$executable"
           done
-          HOME="$verify_home" systemd-analyze verify --user \
-            Linux/systemd/*.service Linux/Handy/*.service
-          rm -rf "$verify_home"
+          runuser -u omavoice-ci -- env \
+            HOME="$verify_home" XDG_RUNTIME_DIR=/run/user/1000 \
+            systemd-analyze verify --user \
+              Linux/systemd/*.service Linux/Handy/*.service
 
       - name: Test and build OmaVoice
         run: |

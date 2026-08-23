@@ -25,13 +25,17 @@ jobs:
       - name: Check out source
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Validate source files
+      - name: Validate formatting and namespace
         run: |
           set -euo pipefail
           cargo fmt --manifest-path Linux/OmaVoiceLinux/Cargo.toml --all -- --check
           git diff --check
           test -z "$(git grep -Il -i sayall -- Linux docs || true)"
           test -z "$(git ls-files Linux docs | grep -i sayall || true)"
+
+      - name: Validate scripts and documents
+        run: |
+          set -euo pipefail
           bash -n \
             Linux/*.sh Linux/omavoicectl Linux/ATVVoice/*.sh \
             Linux/Handy/*.sh Linux/Handy/omavoice-handy Linux/release/*.sh
@@ -41,6 +45,10 @@ jobs:
           rm -rf Linux/release/__pycache__
           python3 Linux/release/check-markdown-links.py .
           desktop-file-validate Linux/*.desktop Linux/Handy/*.desktop
+
+      - name: Validate systemd user units
+        run: |
+          set -euo pipefail
           useradd --create-home --uid 1000 omavoice-ci
           verify_home=/home/omavoice-ci
           install -d -m 0700 -o omavoice-ci -g omavoice-ci /run/user/1000
@@ -52,6 +60,10 @@ jobs:
             HOME="$verify_home" XDG_RUNTIME_DIR=/run/user/1000 \
             systemd-analyze verify --user \
               Linux/systemd/*.service Linux/Handy/*.service
+
+      - name: Validate pinned patches and PolicyKit policy
+        run: |
+          set -euo pipefail
           (cd Linux/ATVVoice && sha256sum --check SHA256SUMS)
           python3 - <<'PY'
           import xml.etree.ElementTree as ET

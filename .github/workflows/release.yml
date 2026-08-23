@@ -87,7 +87,7 @@ jobs:
             --output-directory /tmp/omavoice-dist \
             --atvvoice-build-directory /tmp/omavoice-atvvoice \
             --handy-build-directory /tmp/omavoice-handy \
-            --commit "$GITHUB_SHA"
+            --commit "$(git rev-parse HEAD)"
           (cd /tmp/omavoice-dist && sha256sum --check SHA256SUMS)
           test "$(find /tmp/omavoice-dist -maxdepth 1 -type f | wc -l)" -eq 2
 

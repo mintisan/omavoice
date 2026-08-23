@@ -22,7 +22,8 @@ jobs:
       - name: Install Arch build and release dependencies
         run: |
           pacman -Syu --noconfirm --needed \
-            rust git pkgconf pipewire bluez gtk4 libadwaita sqlite \
+            rust git pkgconf pipewire bluez bluez-utils wireplumber \
+            keyd wtype wl-clipboard gtk4 libadwaita sqlite \
             cmake clang shaderc alsa-lib gtk3 webkit2gtk-4.1 \
             libayatana-appindicator gtk-layer-shell openblas \
             vulkan-headers vulkan-icd-loader python file binutils tar zstd \

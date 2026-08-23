@@ -105,10 +105,12 @@ jobs:
           grep -Fq 'Summary:' /tmp/doctor-en.txt
           grep -Fq 'OmaVoice Linux 能力诊断' /tmp/doctor-zh.txt
           grep -Fq '汇总：' /tmp/doctor-zh.txt
-          LANGUAGE= LC_ALL=C LC_MESSAGES= LANG=C \
-            Linux/omavoicectl help > /tmp/ctl-en.txt
-          LANGUAGE=zh_CN.UTF-8 LC_ALL= LC_MESSAGES= LANG=C \
-            Linux/omavoicectl help > /tmp/ctl-zh.txt
+          runuser -u omavoice-ci -- env HOME=/home/omavoice-ci \
+            LANGUAGE= LC_ALL=C LC_MESSAGES= LANG=C \
+            "$GITHUB_WORKSPACE/Linux/omavoicectl" help > /tmp/ctl-en.txt
+          runuser -u omavoice-ci -- env HOME=/home/omavoice-ci \
+            LANGUAGE=zh_CN.UTF-8 LC_ALL= LC_MESSAGES= LANG=C \
+            "$GITHUB_WORKSPACE/Linux/omavoicectl" help > /tmp/ctl-zh.txt
           grep -Fq 'Manage OmaVoice Linux user services.' /tmp/ctl-en.txt
           grep -Fq '管理OmaVoice Linux 用户服务。' /tmp/ctl-zh.txt
           python3 - <<'PY'

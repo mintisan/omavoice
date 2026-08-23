@@ -30,10 +30,10 @@ jobs:
           set -euo pipefail
           cargo fmt --manifest-path Linux/OmaVoiceLinux/Cargo.toml --all -- --check
 
-      - name: Validate repository diff
+      - name: Verify formatting leaves the worktree clean
         run: |
           set -euo pipefail
-          git diff --check
+          test -z "$(git status --porcelain --untracked-files=no)"
 
       - name: Validate runtime namespace
         run: |

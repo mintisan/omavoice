@@ -51,7 +51,7 @@ jobs:
           test "$version" = "$manifest_version"
           test -z "$(git status --porcelain --untracked-files=all)"
           cargo fmt --manifest-path Linux/OmaVoiceLinux/Cargo.toml --all -- --check
-          git diff --check
+          test -z "$(git status --porcelain --untracked-files=no)"
           test -z "$(git grep -Il -i sayall -- Linux docs || true)"
           test -z "$(git ls-files Linux docs | grep -i sayall || true)"
           bash -n \

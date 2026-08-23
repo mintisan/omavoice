@@ -1,0 +1,45 @@
+From 1d65341499f1f42f5feb5149afef332ee4379aeb Mon Sep 17 00:00:00 2001
+From: Jinhui Lin <fovwin@gmail.com>
+Date: Sat, 22 Aug 2026 16:46:53 +0800
+Subject: [PATCH 4/5] fix: wait for reconnect before GATT retry
+
+Amp-Thread-ID: https://ampcode.com/threads/T-01a027b2-41a4-7429-976c-b1fee0c90a27
+Co-authored-by: Amp <amp@ampcode.com>
+---
+ src/main.rs | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/src/main.rs b/src/main.rs
+index 97ce289..9df05c3 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -269,6 +269,13 @@ async fn main() -> anyhow::Result<()> {
+                             tracing::warn!(
+                                 "Failed to resolve characteristics ({e}), retrying in 2s..."
+                             );
++                            tokio::select! {
++                                _ = ensure_connected(&device) => {}
++                                _ = tokio::signal::ctrl_c() => {
++                                    tracing::info!("Shutting down");
++                                    return Ok(());
++                                }
++                            }
+                             tokio::time::sleep(RETRY_DELAY).await;
+                         }
+                     }
+@@ -525,6 +532,13 @@ async fn main() -> anyhow::Result<()> {
+                                 tracing::warn!(
+                                     "Failed to re-resolve characteristics ({e}), retrying in 2s..."
+                                 );
++                                tokio::select! {
++                                    _ = ensure_connected(&device) => {}
++                                    _ = tokio::signal::ctrl_c() => {
++                                        tracing::info!("Interrupted during reconnection, shutting down");
++                                        break 'discover;
++                                    }
++                                }
+                                 tokio::time::sleep(RETRY_DELAY).await;
+                             }
+                         }
+-- 
+2.55.0

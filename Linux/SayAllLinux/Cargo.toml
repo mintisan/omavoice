@@ -1,0 +1,37 @@
+[package]
+name = "sayall-linux"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "GPL-3.0-only"
+
+[dependencies]
+chrono = "0.4.42"
+evdev = "0.13.2"
+gtk = { package = "gtk4", version = "0.10.0", features = ["v4_14"] }
+hound = "3.5.1"
+image = { version = "=0.25.9", default-features = false, features = ["png"] }
+ksni = { version = "0.3.6", features = ["blocking"] }
+libadwaita = { version = "0.8.0", features = ["v1_4"] }
+rusqlite = "0.37.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+tempfile = "3.23.0"
+
+[[bin]]
+name = "sayall-doctor"
+path = "src/bin/sayall-doctor.rs"
+
+[[bin]]
+name = "sayall-settings"
+path = "src/bin/sayall-settings.rs"
+
+[[bin]]
+name = "sayall-keyd-helper"
+path = "src/bin/sayall-keyd-helper.rs"
+
+[[bin]]
+name = "sayall-statistics"
+path = "src/bin/sayall-statistics.rs"

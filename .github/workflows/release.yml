@@ -1,0 +1,114 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish x86_64 release
+    runs-on: ubuntu-24.04
+    container: archlinux:base-devel
+    timeout-minutes: 180
+    steps:
+      - name: Install Arch build and release dependencies
+        run: |
+          pacman -Syu --noconfirm --needed \
+            rust git pkgconf pipewire bluez gtk4 libadwaita sqlite \
+            cmake clang shaderc alsa-lib gtk3 webkit2gtk-4.1 \
+            libayatana-appindicator gtk-layer-shell openblas \
+            vulkan-headers vulkan-icd-loader python file binutils tar zstd \
+            desktop-file-utils systemd github-cli
+
+      - name: Check out tagged source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Install pinned Bun toolchain
+        uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
+        with:
+          version: 2026.8.6
+          cache: false
+
+      - name: Validate tag and source
+        run: |
+          set -euo pipefail
+          version=${GITHUB_REF_NAME#v}
+          test "$GITHUB_REF_NAME" = "v$version"
+          manifest_version=$(sed -n \
+            '/^version = /{s/^version = "\([^"]*\)"/\1/p;q}' \
+            Linux/SayAllLinux/Cargo.toml)
+          test "$version" = "$manifest_version"
+          test -z "$(git status --porcelain --untracked-files=all)"
+          cargo fmt --manifest-path Linux/SayAllLinux/Cargo.toml --all -- --check
+          git diff --check
+          bash -n \
+            Linux/*.sh Linux/sayallctl Linux/ATVVoice/*.sh \
+            Linux/Handy/*.sh Linux/Handy/sayall-handy Linux/release/*.sh
+          python3 -m py_compile \
+            Linux/release/check-markdown-links.py \
+            Linux/release/rust-licenses.py Linux/release/js-licenses.py
+          rm -rf Linux/release/__pycache__
+          python3 Linux/release/check-markdown-links.py .
+          desktop-file-validate Linux/*.desktop Linux/Handy/*.desktop
+          systemd-analyze verify --user Linux/systemd/*.service Linux/Handy/*.service
+
+      - name: Test and build OmaVoice
+        run: |
+          set -euo pipefail
+          cargo test --manifest-path Linux/SayAllLinux/Cargo.toml --locked --all-targets
+          cargo clippy --manifest-path Linux/SayAllLinux/Cargo.toml \
+            --locked --all-targets -- -D warnings
+          cargo build --manifest-path Linux/SayAllLinux/Cargo.toml \
+            --locked --release --bins
+
+      - name: Build pinned ATVVoice
+        run: bash Linux/ATVVoice/build-patched.sh /tmp/omavoice-atvvoice
+
+      - name: Build pinned Handy
+        run: bash Linux/Handy/build-pinned.sh /tmp/omavoice-handy
+
+      - name: Package and verify release
+        run: |
+          set -euo pipefail
+          version=${GITHUB_REF_NAME#v}
+          mkdir /tmp/omavoice-dist
+          bash Linux/package-release.sh \
+            --version "$version" \
+            --output-directory /tmp/omavoice-dist \
+            --atvvoice-build-directory /tmp/omavoice-atvvoice \
+            --handy-build-directory /tmp/omavoice-handy \
+            --commit "$GITHUB_SHA"
+          (cd /tmp/omavoice-dist && sha256sum --check SHA256SUMS)
+          test "$(find /tmp/omavoice-dist -maxdepth 1 -type f | wc -l)" -eq 2
+
+      - name: Upload verified release assets
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: OmaVoice-${{ github.ref_name }}-omarchy-arch-x86_64
+          path: |
+            /tmp/omavoice-dist/*.tar.zst
+            /tmp/omavoice-dist/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create GitHub pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            /tmp/omavoice-dist/*.tar.zst \
+            /tmp/omavoice-dist/SHA256SUMS \
+            --verify-tag \
+            --prerelease \
+            --title "OmaVoice $GITHUB_REF_NAME" \
+            --notes-file RELEASE_NOTES.md

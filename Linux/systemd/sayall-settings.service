@@ -1,0 +1,19 @@
+[Unit]
+Description=OmaVoice settings and status tray
+Documentation=https://github.com/mintisan/omavoice
+After=graphical-session.target
+PartOf=graphical-session.target
+ConditionEnvironment=WAYLAND_DISPLAY
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/sayall-settings --gapplication-service
+Restart=on-failure
+RestartSec=2
+# pkexec only launches the fixed root-owned helper. NoNewPrivileges blocks its
+# setuid transition; user-unit PrivateTmp creates a UID namespace without root.
+UMask=0077
+
+[Install]
+WantedBy=graphical-session.target

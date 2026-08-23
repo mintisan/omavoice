@@ -1,0 +1,20 @@
+[Unit]
+Description=OmaVoice RC003 voice remote audio service
+Documentation=https://github.com/mintisan/omavoice
+After=graphical-session.target pipewire.service wireplumber.service
+Wants=pipewire.service wireplumber.service
+PartOf=graphical-session.target
+ConditionEnvironment=WAYLAND_DISPLAY
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/sayall-atvvoice --name sayall-rc003 --description "OmaVoice remote microphone" --gain 0 --frame-timeout 0 --keep-alive 10
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0077
+
+[Install]
+WantedBy=graphical-session.target

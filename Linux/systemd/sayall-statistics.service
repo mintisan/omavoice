@@ -1,0 +1,18 @@
+[Unit]
+Description=OmaVoice private local usage statistics
+Documentation=https://github.com/mintisan/omavoice
+After=graphical-session.target
+PartOf=graphical-session.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/sayall-statistics
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0077
+
+[Install]
+WantedBy=graphical-session.target

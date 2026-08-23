@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=OmaVoice
+Name[zh_CN]=OmaVoice
+Comment=Configure the OmaVoice remote microphone and global dictation components
+Comment[zh_CN]=配置 OmaVoice 遥控器麦克风与全局语音输入组件
+Exec=sayall-settings
+TryExec=sayall-settings
+Icon=app.sayall.Settings
+Terminal=false
+StartupNotify=true
+Categories=Settings;HardwareSettings;

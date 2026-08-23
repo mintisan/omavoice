@@ -1,0 +1,146 @@
+From 31dc9999a7c66364570f719e9ec0663915238dea Mon Sep 17 00:00:00 2001
+From: Jinhui Lin <fovwin@gmail.com>
+Date: Sat, 22 Aug 2026 17:17:58 +0800
+Subject: [PATCH 5/5] fix: recover source after PipeWire restart
+
+Amp-Thread-ID: https://ampcode.com/threads/T-01a027b2-41a4-7429-976c-b1fee0c90a27
+Co-authored-by: Amp <amp@ampcode.com>
+---
+ src/main.rs | 21 +++++++++++++++++++--
+ src/pw.rs   | 32 ++++++++++++++++++++++++++++++++
+ 2 files changed, 51 insertions(+), 2 deletions(-)
+
+diff --git a/src/main.rs b/src/main.rs
+index 9df05c3..e72c80b 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -414,6 +414,7 @@ async fn main() -> anyhow::Result<()> {
+ 
+             let pw_name = node_name.clone();
+             let pw_desc = node_description.clone();
++            let (pw_done_tx, mut pw_done_rx) = tokio::sync::oneshot::channel();
+             let pw_thread = std::thread::spawn(move || {
+                 if let Err(e) = pw::run_pw_source(
+                     pcm_rx,
+@@ -426,6 +427,7 @@ async fn main() -> anyhow::Result<()> {
+                 ) {
+                     tracing::error!("PipeWire error: {}", e);
+                 }
++                let _ = pw_done_tx.send(());
+             });
+ 
+             // Post-processing task: Protocol already decoded the audio,
+@@ -444,7 +446,7 @@ async fn main() -> anyhow::Result<()> {
+                 }
+             });
+ 
+-            let session_result = tokio::select! {
++            let (session_result, pipewire_stopped) = tokio::select! {
+                 result = atvv::run_session(
+                     &ble_device,
+                     &mut *session_protocol,
+@@ -462,7 +464,11 @@ async fn main() -> anyhow::Result<()> {
+                         consumer_rx,
+                         mic_on_demand: cli.mic_on_demand,
+                     },
+-                ) => result,
++                ) => (result, false),
++                _ = &mut pw_done_rx => {
++                    tracing::warn!("PipeWire worker stopped; restarting audio session");
++                    (Ok(()), true)
++                }
+                 _ = tokio::signal::ctrl_c() => {
+                     let mic_close = session_protocol.mic_close_cmd(
+                         protocol::types::StreamId::ANY,
+@@ -483,6 +489,17 @@ async fn main() -> anyhow::Result<()> {
+                 tracing::error!("PipeWire thread panicked: {panic:?}");
+             }
+ 
++            if pipewire_stopped {
++                tokio::select! {
++                    _ = tokio::time::sleep(RETRY_DELAY) => {}
++                    _ = tokio::signal::ctrl_c() => {
++                        tracing::info!("Interrupted during PipeWire recovery, shutting down");
++                        break 'discover;
++                    }
++                }
++                continue;
++            }
++
+             match &session_result {
+                 Ok(()) => tracing::info!("Session ended"),
+                 Err(e) if is_device_locked_error(e) => {
+diff --git a/src/pw.rs b/src/pw.rs
+index 2aa4e7f..64b2631 100644
+--- a/src/pw.rs
++++ b/src/pw.rs
+@@ -32,6 +32,14 @@ const SAMPLE_SIZE: usize = std::mem::size_of::<i16>();
+ #[derive(Debug)]
+ pub struct Shutdown;
+ 
++/// Whether a PipeWire stream state means its server connection must be rebuilt.
++fn source_connection_lost(state: &pipewire::stream::StreamState) -> bool {
++    matches!(
++        state,
++        pipewire::stream::StreamState::Unconnected | pipewire::stream::StreamState::Error(_)
++    )
++}
++
+ /// Drop samples captured while the PipeWire source was not streaming.
+ fn clear_stale_audio(
+     audio_rx: &mpsc::Receiver<Vec<i16>>,
+@@ -70,11 +78,14 @@ pub fn run_pw_source(
+     // Shared slot for the stream - set after creation, used by shutdown handler.
+     let stream_slot: std::rc::Rc<std::cell::RefCell<Option<StreamRc>>> =
+         std::rc::Rc::new(std::cell::RefCell::new(None));
++    let shutdown_requested = std::rc::Rc::new(std::cell::Cell::new(false));
+     let _receiver = shutdown_rx.attach(mainloop.loop_(), {
+         let mainloop = mainloop.clone();
+         let stream_slot = stream_slot.clone();
++        let shutdown_requested = shutdown_requested.clone();
+         move |_: Shutdown| {
+             tracing::info!("PipeWire source shutting down");
++            shutdown_requested.set(true);
+             // Disconnect stream while mainloop is alive (cpal pattern).
+             if let Some(stream) = stream_slot.borrow().as_ref() {
+                 let _ = stream.disconnect();
+@@ -129,9 +140,17 @@ pub fn run_pw_source(
+             let stream_for_id = stream.clone();
+             let audio_rx = audio_rx.clone();
+             let pending = pending.clone();
++            let mainloop = mainloop.clone();
++            let shutdown_requested = shutdown_requested.clone();
+             move |_, _, old, new| {
+                 tracing::debug!("PipeWire stream state: {old:?} -> {new:?}");
+ 
++                if !shutdown_requested.get() && source_connection_lost(&new) {
++                    tracing::warn!("PipeWire connection lost; rebuilding source");
++                    mainloop.quit();
++                    return;
++                }
++
+                 if !matches!(&old, pipewire::stream::StreamState::Streaming)
+                     && matches!(&new, pipewire::stream::StreamState::Streaming)
+                 {
+@@ -463,6 +482,19 @@ pub fn run_pw_source(
+ mod tests {
+     use super::*;
+ 
++    #[test]
++    fn terminal_pipewire_states_require_source_restart() {
++        use pipewire::stream::StreamState;
++
++        assert!(source_connection_lost(&StreamState::Unconnected));
++        assert!(source_connection_lost(&StreamState::Error(
++            "server stopped".to_string()
++        )));
++        assert!(!source_connection_lost(&StreamState::Connecting));
++        assert!(!source_connection_lost(&StreamState::Paused));
++        assert!(!source_connection_lost(&StreamState::Streaming));
++    }
++
+     #[test]
+     fn clear_stale_audio_discards_channel_and_pending_samples() {
+         let (audio_tx, audio_rx) = mpsc::channel();
+-- 
+2.55.0

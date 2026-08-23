@@ -1,0 +1,7 @@
+ed51a619dd831c54760111db2189bf122f5b29ae5b5b8364fcbbdba97a184c5d  patches/0001-fix-reset-ADPCM-state-on-audio-start.patch
+a3e98178d5676ea2777fe5663dc8d33d33201228368eed524fadcb2a68791c8d  patches/0002-fix-discard-stale-PipeWire-audio-on-resume.patch
+b158e328b97c52ee57d20b35ad87884905392655c5661d8363c8c782e4d69fa9  patches/0003-fix-handle-device-event-stream-closure.patch
+7abbbd9ac5622f50368f70129f9513eb130170a6c93b85faddf12da6dcba2463  patches/0004-fix-wait-for-reconnect-before-GATT-retry.patch
+4d4d7da1dacce342b6890993d6e77b1f4930123a1a4a98b67857a8a281d8dbee  patches/0005-fix-recover-source-after-PipeWire-restart.patch
+ccd1ede7088f44636dbb7360ba8e7e1d4cb62aa770871262db4cabe1e669df8b  patches/0006-fix-parse-legacy-v1-capabilities-layout.patch
+3be3d3fd401db308894d4458c7ec4ab1e855c53304144f61aa1a025459046f17  patches/0007-fix-redact-Bluetooth-address-from-logs.patch

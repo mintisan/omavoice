@@ -1,0 +1,105 @@
+From 7be664a81c2be05ff3c75daa1adc9ca184f271f7 Mon Sep 17 00:00:00 2001
+From: Jinhui Lin <fovwin@gmail.com>
+Date: Sat, 22 Aug 2026 15:27:05 +0800
+Subject: [PATCH 1/5] fix: reset ADPCM state on audio start
+
+Amp-Thread-ID: https://ampcode.com/threads/T-01a027b2-41a4-7429-976c-b1fee0c90a27
+Co-authored-by: Amp <amp@ampcode.com>
+---
+ src/atvv.rs         |  4 +++-
+ src/protocol/mod.rs |  3 +++
+ src/protocol/v04.rs |  4 ++++
+ src/protocol/v10.rs | 27 +++++++++++++++++++++++++++
+ 4 files changed, 37 insertions(+), 1 deletion(-)
+
+diff --git a/src/atvv.rs b/src/atvv.rs
+index 921a9e6..51a4819 100644
+--- a/src/atvv.rs
++++ b/src/atvv.rs
+@@ -196,7 +196,9 @@ pub async fn run_session(
+                     }
+                     CtlEvent::AudioStart { reason, codec, stream_id } => {
+                         tracing::info!("AUDIO_START (reason={:?}, codec={:?}, stream_id={:?})", reason, codec, stream_id);
+-                        // Remote resets its sequence counter on every AUDIO_START
++                        // A new stream starts with fresh codec/decoder state. A later
++                        // AUDIO_SYNC may replace this baseline before the next frame.
++                        protocol.on_audio_start(codec);
+                         last_seq = None;
+                         current_stream_id = Some(stream_id);
+                         set_state(State::Streaming, &mut state);
+diff --git a/src/protocol/mod.rs b/src/protocol/mod.rs
+index c40ea3e..a6f4caa 100644
+--- a/src/protocol/mod.rs
++++ b/src/protocol/mod.rs
+@@ -29,6 +29,9 @@ pub trait Protocol: Send {
+     /// Process received capabilities. Returns the negotiated codec.
+     fn on_caps_resp(&mut self, caps: &Capabilities) -> Result<Codec>;
+ 
++    /// Start a new audio session using the codec reported by AUDIO_START.
++    fn on_audio_start(&mut self, codec: Codec);
++
+     /// Decode an audio frame notification into PCM samples.
+     /// Returns None if the frame is invalid/wrong size.
+     fn decode_audio(&mut self, data: &[u8]) -> Option<AudioFrame>;
+diff --git a/src/protocol/v04.rs b/src/protocol/v04.rs
+index a51318c..8d6b25f 100644
+--- a/src/protocol/v04.rs
++++ b/src/protocol/v04.rs
+@@ -149,6 +149,10 @@ impl Protocol for ProtocolV04 {
+         Ok(codec)
+     }
+ 
++    fn on_audio_start(&mut self, codec: Codec) {
++        self.selected_codec = Some(codec);
++    }
++
+     fn decode_audio(&mut self, data: &[u8]) -> Option<AudioFrame> {
+         let expected = self.audio_frame_size.0 as usize;
+         if data.len() != expected {
+diff --git a/src/protocol/v10.rs b/src/protocol/v10.rs
+index 0c0d6a4..3f61480 100644
+--- a/src/protocol/v10.rs
++++ b/src/protocol/v10.rs
+@@ -158,6 +158,12 @@ impl Protocol for ProtocolV10 {
+         Ok(codec)
+     }
+ 
++    fn on_audio_start(&mut self, codec: Codec) {
++        self.selected_codec = Some(codec);
++        self.decoder.reset(0, 0);
++        self.frame_seq = 0;
++    }
++
+     fn decode_audio(&mut self, data: &[u8]) -> Option<AudioFrame> {
+         let expected = self.audio_frame_size.0 as usize;
+         if data.len() != expected {
+@@ -362,6 +368,27 @@ mod tests {
+         assert_eq!(p.frame_seq, 42);
+     }
+ 
++    #[test]
++    fn test_audio_start_resets_decoder_for_new_session() {
++        let mut reused = ProtocolV10::new();
++        reused.selected_codec = Some(Codec::Adpcm16kHz);
++        reused.audio_frame_size = AudioFrameSize(20);
++
++        reused.on_audio_start(Codec::Adpcm16kHz);
++        reused.decode_audio(&[0x77; 20]).unwrap();
++        reused.on_audio_start(Codec::Adpcm16kHz);
++        let second_session = reused.decode_audio(&[0x01; 20]).unwrap();
++
++        let mut fresh = ProtocolV10::new();
++        fresh.selected_codec = Some(Codec::Adpcm16kHz);
++        fresh.audio_frame_size = AudioFrameSize(20);
++        fresh.on_audio_start(Codec::Adpcm16kHz);
++        let fresh_session = fresh.decode_audio(&[0x01; 20]).unwrap();
++
++        assert_eq!(second_session.seq, 0);
++        assert_eq!(second_session.samples, fresh_session.samples);
++    }
++
+     #[test]
+     fn test_decode_headerless_frame() {
+         let mut p = ProtocolV10::new();
+-- 
+2.55.0

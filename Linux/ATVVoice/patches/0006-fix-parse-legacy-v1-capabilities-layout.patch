@@ -1,0 +1,62 @@
+From c572ae369be8f46d65985c06332e22bfa72e4b4e Mon Sep 17 00:00:00 2001
+From: Jinhui Lin <fovwin@gmail.com>
+Date: Sat, 22 Aug 2026 20:14:06 +0800
+Subject: [PATCH 6/6] fix: parse legacy v1 capabilities layout
+
+Co-authored-by: Amp <amp@ampcode.com>
+Amp-Thread-ID: https://ampcode.com/threads/T-01a027b2-41a4-7429-976c-b1fee0c90a27
+---
+ src/protocol/v10.rs | 31 ++++++++++++++++++++++++++++---
+ 1 file changed, 28 insertions(+), 3 deletions(-)
+
+diff --git a/src/protocol/v10.rs b/src/protocol/v10.rs
+index 3f61480..631cb13 100644
+--- a/src/protocol/v10.rs
++++ b/src/protocol/v10.rs
+@@ -23,9 +23,18 @@ pub(crate) fn parse_caps_resp_payload(data: &[u8]) -> Option<Capabilities> {
+     // Defensive default: if the wire version is unrecognized, assume v1.0
+     // for forward-compatibility with future protocol versions.
+     let version = ProtocolVersion::from_wire(version_wire).unwrap_or(ProtocolVersion::V1_0);
+-    let codecs = Codecs::from_bits_truncate(data[3]);
+-    let interaction_model =
+-        InteractionModel::try_from(data[4]).unwrap_or(InteractionModel::OnRequest);
++    let legacy_codecs = Codecs::from_bits_truncate(data[4]);
++    let (codecs, interaction_model) =
++        if data[3] == 0 && data.len() >= 9 && !legacy_codecs.is_empty() {
++            // RC001/RC003 can return a legacy nine-byte layout with codecs
++            // shifted to byte 4 and no separate interaction-model field.
++            (legacy_codecs, InteractionModel::HoldToTalk)
++        } else {
++            (
++                Codecs::from_bits_truncate(data[3]),
++                InteractionModel::try_from(data[4]).unwrap_or(InteractionModel::OnRequest),
++            )
++        };
+     let frame_size = u16::from_be_bytes([data[5], data[6]]);
+     Some(Capabilities {
+         version,
+@@ -338,6 +347,22 @@ mod tests {
+         }
+     }
+ 
++    #[test]
++    fn test_parse_caps_resp_v10_legacy_codec_layout() {
++        let p = ProtocolV10::new();
++        let data = [0x0B, 0x01, 0x00, 0x00, 0x02, 0x00, 0x78, 0x00, 0x00];
++
++        match p.parse_ctl(&data) {
++            CtlEvent::CapsResp(caps) => {
++                assert_eq!(caps.version, ProtocolVersion::V1_0);
++                assert_eq!(caps.codecs, Codecs::ADPCM_16KHZ);
++                assert_eq!(caps.interaction_model, InteractionModel::HoldToTalk);
++                assert_eq!(caps.audio_frame_size.0, 120);
++            }
++            other => panic!("expected CapsResp, got {:?}", other),
++        }
++    }
++
+     #[test]
+     fn test_parse_mic_open_error_ptt_in_progress() {
+         let p = ProtocolV10::new();
+-- 
+2.55.0

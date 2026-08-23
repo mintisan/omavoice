@@ -1,0 +1,79 @@
+From 955278187231ded1c284c0d3366848ef5f0441c2 Mon Sep 17 00:00:00 2001
+From: Jinhui Lin <fovwin@gmail.com>
+Date: Sat, 22 Aug 2026 20:45:26 +0800
+Subject: [PATCH] fix: redact Bluetooth address from logs
+
+Co-authored-by: Amp <amp@ampcode.com>
+Amp-Thread-ID: https://ampcode.com/threads/T-01a027b2-41a4-7429-976c-b1fee0c90a27
+---
+ src/ble.rs  | 10 ++++++----
+ src/main.rs | 12 ++++--------
+ 2 files changed, 10 insertions(+), 12 deletions(-)
+
+diff --git a/src/ble.rs b/src/ble.rs
+index b84242d..3be3b9c 100644
+--- a/src/ble.rs
++++ b/src/ble.rs
+@@ -139,9 +139,8 @@ pub async fn find_atvv_device(
+         if let Ok(Some(uuids)) = device.uuids().await {
+             if uuids.contains(&ATVV_SERVICE) {
+                 tracing::info!(
+-                    "Found ATVV device: {} ({})",
+-                    device.name().await.ok().flatten().unwrap_or_default(),
+-                    addr
++                    "Found ATVV device: {}",
++                    device.name().await.ok().flatten().unwrap_or_default()
+                 );
+                 return Ok(device);
+             }
+@@ -160,7 +159,10 @@ pub async fn find_atvv_device(
+             let device = adapter.device(addr)?;
+             if let Ok(Some(uuids)) = device.uuids().await {
+                 if uuids.contains(&ATVV_SERVICE) {
+-                    tracing::info!("Discovered ATVV device: {}", addr);
++                    tracing::info!(
++                        "Discovered ATVV device: {}",
++                        device.name().await.ok().flatten().unwrap_or_default()
++                    );
+                     return Ok(device);
+                 }
+             }
+diff --git a/src/main.rs b/src/main.rs
+index e72c80b..4dc0cb9 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -359,13 +359,11 @@ async fn main() -> anyhow::Result<()> {
+                         if is_device_locked_error(&e) {
+                             if filter_addr.is_some() {
+                                 anyhow::bail!(
+-                                    "Device {} is already in use by another ATVVoice instance.",
+-                                    device.address()
++                                    "Selected device is already in use by another ATVVoice instance."
+                                 );
+                             } else {
+                                 tracing::warn!(
+-                                    "Device {} is locked by another instance, looking for another device...",
+-                                    device.address()
++                                    "ATVV device is locked by another instance, looking for another device..."
+                                 );
+                                 excluded_addrs.insert(device.address());
+                                 continue 'discover;
+@@ -506,14 +504,12 @@ async fn main() -> anyhow::Result<()> {
+                     if filter_addr.is_some() {
+                         // Explicit --device: fatal, user asked for this specific device.
+                         anyhow::bail!(
+-                            "Device {} is already in use by another ATVVoice instance.",
+-                            device.address()
++                            "Selected device is already in use by another ATVVoice instance."
+                         );
+                     } else {
+                         // Auto mode: skip this device, try to find another.
+                         tracing::warn!(
+-                            "Device {} is locked by another instance, looking for another device...",
+-                            device.address()
++                            "ATVV device is locked by another instance, looking for another device..."
+                         );
+                         excluded_addrs.insert(device.address());
+                         continue 'discover;
+--
+2.55.0

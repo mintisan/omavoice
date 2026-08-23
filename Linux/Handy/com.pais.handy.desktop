@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Handy
+Name[zh_CN]=Handy
+Comment=Local speech-to-text for OmaVoice
+Comment[zh_CN]=用于 OmaVoice 的本地语音转文字
+Exec=sayall-handy
+Icon=handy
+Terminal=false
+Categories=Utility;Accessibility;
+Keywords=dictation;speech;transcription;voice;
+StartupNotify=true

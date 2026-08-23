@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Linux source and core runtime
+    runs-on: ubuntu-24.04
+    container: archlinux:base-devel
+    timeout-minutes: 45
+    steps:
+      - name: Install Arch build dependencies
+        run: |
+          pacman -Syu --noconfirm --needed \
+            rust git pkgconf gtk4 libadwaita sqlite python \
+            desktop-file-utils systemd
+
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate source files
+        run: |
+          set -euo pipefail
+          cargo fmt --manifest-path Linux/SayAllLinux/Cargo.toml --all -- --check
+          git diff --check
+          bash -n \
+            Linux/*.sh Linux/sayallctl Linux/ATVVoice/*.sh \
+            Linux/Handy/*.sh Linux/Handy/sayall-handy Linux/release/*.sh
+          python3 -m py_compile \
+            Linux/release/check-markdown-links.py \
+            Linux/release/rust-licenses.py Linux/release/js-licenses.py
+          rm -rf Linux/release/__pycache__
+          python3 Linux/release/check-markdown-links.py .
+          desktop-file-validate Linux/*.desktop Linux/Handy/*.desktop
+          systemd-analyze verify --user Linux/systemd/*.service Linux/Handy/*.service
+          (cd Linux/ATVVoice && sha256sum --check SHA256SUMS)
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+
+          root = ET.parse("Linux/polkit/app.sayall.keyd.policy").getroot()
+          action = root.find("./action[@id='app.sayall.keyd.apply']")
+          assert action is not None
+          annotation = action.find("./annotate[@key='org.freedesktop.policykit.exec.path']")
+          assert annotation is not None
+          assert annotation.text == "/usr/lib/sayall/sayall-keyd-helper"
+          PY
+
+      - name: Test, lint, and build OmaVoice
+        run: |
+          set -euo pipefail
+          cargo test --manifest-path Linux/SayAllLinux/Cargo.toml --locked --all-targets
+          cargo clippy --manifest-path Linux/SayAllLinux/Cargo.toml \
+            --locked --all-targets -- -D warnings
+          cargo build --manifest-path Linux/SayAllLinux/Cargo.toml \
+            --locked --release --bins
+
+      - name: Verify English fallback and Simplified Chinese locale
+        run: |
+          set -euo pipefail
+          doctor=Linux/SayAllLinux/target/release/sayall-doctor
+          LANGUAGE= LC_ALL=C LC_MESSAGES= LANG=C \
+            "$doctor" --phase 0a > /tmp/doctor-en.txt
+          LANGUAGE=zh_CN.UTF-8 LC_ALL= LC_MESSAGES= LANG=C \
+            "$doctor" --phase 0a > /tmp/doctor-zh.txt
+          grep -Fq 'OmaVoice Linux capability report' /tmp/doctor-en.txt
+          grep -Fq 'Summary:' /tmp/doctor-en.txt
+          grep -Fq 'OmaVoice Linux 能力诊断' /tmp/doctor-zh.txt
+          grep -Fq '汇总：' /tmp/doctor-zh.txt
+          LANGUAGE= LC_ALL=C LC_MESSAGES= LANG=C \
+            Linux/sayallctl help > /tmp/ctl-en.txt
+          LANGUAGE=zh_CN.UTF-8 LC_ALL= LC_MESSAGES= LANG=C \
+            Linux/sayallctl help > /tmp/ctl-zh.txt
+          grep -Fq 'Manage OmaVoice Linux user services.' /tmp/ctl-en.txt
+          grep -Fq '管理OmaVoice Linux 用户服务。' /tmp/ctl-zh.txt
+          python3 - <<'PY'
+          from pathlib import Path
+
+          english = Path("/tmp/doctor-en.txt").read_text() + Path("/tmp/ctl-en.txt").read_text()
+          assert not any("\u3400" <= character <= "\u9fff" for character in english)
+          PY
+
+      - name: Verify Rust dependency license inventory
+        run: |
+          set -euo pipefail
+          work=$(mktemp -d)
+          trap 'rm -rf "$work"' EXIT
+          cargo metadata --manifest-path Linux/SayAllLinux/Cargo.toml \
+            --locked --offline --filter-platform x86_64-unknown-linux-gnu \
+            --format-version 1 > "$work/metadata.json"
+          python3 Linux/release/rust-licenses.py \
+            "$work/metadata.json" "$work/licenses"
+          test "$(wc -l < "$work/licenses/INDEX.tsv")" -gt 100

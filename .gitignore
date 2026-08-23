@@ -1,0 +1,20 @@
+/Linux/SayAllLinux/target/
+/Linux/Handy/build/
+/build/
+/dist/
+
+# Local runtime data never belongs in source or releases.
+*.db
+*.db-shm
+*.db-wal
+*.wav
+*.core
+*.log
+
+# Editors and local environments.
+.DS_Store
+.idea/
+.vscode/
+.env
+.env.*
+!.env.example

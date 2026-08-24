@@ -77,6 +77,10 @@ fi
 bash -n "$root"/{install.sh,uninstall.sh} "$root"/optional-keyd/{install.sh,uninstall.sh}
 python3 "$HERE/Linux/release/check-markdown-links.py" "$root"
 (cd "$root"; find . -type f ! -name PAYLOAD-SHA256SUMS -printf '%P\0'|sort -z|xargs -0 sha256sum >PAYLOAD-SHA256SUMS)
-"$HERE/Linux/release/test-lifecycle.sh" "$root"
+if ((EUID == 0)); then
+  runuser -u "$verify_user" -- "$HERE/Linux/release/test-lifecycle.sh" "$root"
+else
+  "$HERE/Linux/release/test-lifecycle.sh" "$root"
+fi
 archive="OmaVoice-v$version-omarchy-arch-x86_64.tar.zst"; tar --sort=name --mtime="@$epoch" --owner=0 --group=0 --numeric-owner --pax-option=delete=atime,delete=ctime -C "$work" -cf - "${root##*/}"|zstd -19 -T1 -q -o "$out/$archive"; (cd "$out"&&sha256sum "$archive" >SHA256SUMS)
 echo "Created $out/$archive"

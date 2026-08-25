@@ -95,6 +95,7 @@ jobs:
         run: |
           set -euo pipefail
           version=${GITHUB_REF_NAME#v}
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           mkdir /tmp/omavoice-dist
           bash Linux/package-release.sh \
             --version "$version" \
